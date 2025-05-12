@@ -31,37 +31,37 @@ const (
 	DEFAULT_FILTER = "."
 )
 
-// Cli arguments variable.
-var args Arguments
-
 // Functions:
-func handleProgramFile() error {
-	if len(args.ProgramFile) != 0 {
+func handleProgramFile(t_args *Arguments) error {
+	if len(t_args.ProgramFile) != 0 {
 		// If the program file was supplied then the program text positional arg.
 		// Should be moved to other input files to parse.
-		args.InputFiles = append([]string{args.ProgramText}, args.InputFiles...)
+		slice := []string{t_args.ProgramText}
+		t_args.InputFiles = append(slice, t_args.InputFiles...)
 
-		_, err := os.Stat(args.ProgramFile)
+		_, err := os.Stat(t_args.ProgramFile)
 		if err != nil {
 			return err
 		}
 
 		// TODO: Implement the rest.
-		args.ProgramText = "TODO: Overwrite with args.ProgramFile content."
+		t_args.ProgramText = "TODO: Overwrite with args.ProgramFile content."
 	}
 
 	return nil
 }
 
-func initArgs() error {
+func initArgs() (Arguments, error) {
+	var args Arguments
+
 	// Parse and handle arguments.
 	arg.MustParse(&args)
 	defer util.Logf("args: %+v", args)
 
 	// Logging:
-	err := handleProgramFile()
+	err := handleProgramFile(&args)
 	if err != nil {
-		return err
+		return args, err
 	}
 
 	if len(args.ProgramText) == 0 {
@@ -75,5 +75,5 @@ func initArgs() error {
 		args.FromStdin = true
 	}
 
-	return nil
+	return args, nil
 }

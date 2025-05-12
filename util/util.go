@@ -38,7 +38,7 @@ func initDebug() bool {
 	}
 
 	if debug {
-		Println("Debug mode on.")
+		log.Println("Debug mode on.")
 	}
 
 	return debug
@@ -67,6 +67,7 @@ func Quote[T any](t_var T) string {
 // Conditionally log only if DEBUG is set to true.
 func Logf(t_fmt string, t_args ...interface{}) {
 	if DEBUG {
+		// Add a newline.
 		fmtLn := fmt.Sprintln(t_fmt)
 
 		log.Printf(fmtLn, t_args...)
