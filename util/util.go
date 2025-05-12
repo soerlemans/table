@@ -1,10 +1,12 @@
-// Utility functions.
+// Utility functions for logging and formatting.
 package util
 
 import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 // Determines if we should log (Not able to be a constant).
@@ -19,15 +21,24 @@ const (
 func initDebug() bool {
 	var debug = false
 
+	// Load environment from .env optionally.
+	// Ignore any errors as a .env is not required.
+	godotenv.Load()
+
 	// Environment variable name to lookup.
 	const DEBUG_ENV_NAME = "DEBUG"
 	const DEBUG_FALSE = "false"
 
 	value, exists := os.LookupEnv(DEBUG_ENV_NAME)
 	if exists {
+
 		// If the environment variable exists.
 		// And is not false then we enable debug mode.
 		debug = (value != DEBUG_FALSE)
+	}
+
+	if debug {
+		Println("Debug mode on.")
 	}
 
 	return debug
@@ -47,10 +58,17 @@ func FailIf(t_err error) {
 	}
 }
 
+// Convert any variable to a string and encircle with quotes.
+func Quote[T any](t_var T) string {
+	return fmt.Sprint("\"", t_var, "\"")
+
+}
+
 // Conditionally log only if DEBUG is set to true.
 func Logf(t_fmt string, t_args ...interface{}) {
 	if DEBUG {
 		fmtLn := fmt.Sprintln(t_fmt)
+
 		log.Printf(fmtLn, t_args...)
 	}
 }

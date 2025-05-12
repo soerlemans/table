@@ -11,10 +11,11 @@ import (
 
 // Arguments Struct:
 type Arguments struct {
-	ProgramFile string `arg:"-f,--file" help:"Path to file containing queries."`
+	ProgramFile string `arg:"-f,--file" help:"Path to file containing filters."`
+	FromStdin   bool   `arg:"--stdin" help:"Specifies if the program should read from stdin." default:"false"`
 
 	// Positional.
-	ProgramText string   `arg:"positional" help:"Query to execute."`
+	ProgramText string   `arg:"positional" help:"Filter to execute."`
 	InputFiles  []string `arg:"positional" help:"Files to source as input."`
 }
 
@@ -26,25 +27,53 @@ func (Arguments) Version() string {
 // Globals:
 const (
 	VERSION = "0.1"
+
+	DEFAULT_FILTER = "."
 )
 
 // Cli arguments variable.
 var args Arguments
 
 // Functions:
+func handleProgramFile() error {
+	if len(args.ProgramFile) != 0 {
+		// If the program file was supplied then the program text positional arg.
+		// Should be moved to other input files to parse.
+		args.InputFiles = append([]string{args.ProgramText}, args.InputFiles...)
+
+		_, err := os.Stat(args.ProgramFile)
+		if err != nil {
+			return err
+		}
+
+		// TODO: Implement the rest.
+		args.ProgramText = "TODO: Overwrite with args.ProgramFile content."
+	}
+
+	return nil
+}
+
 func initArgs() error {
 	// Parse and handle arguments.
 	arg.MustParse(&args)
+	defer util.Logf("args: %+v", args)
 
 	// Logging:
-	if len(args.ProgramFile) != 0 {
-		// If a
-		args.InputFiles = append([]string{args.ProgramText}, args.InputFiles...)
+	err := handleProgramFile()
+	if err != nil {
+		return err
 	}
 
-	if len(args.ProgramText) != 0 {
+	if len(args.ProgramText) == 0 {
+		defaultFilter := util.Quote(DEFAULT_FILTER)
+		util.Logf("No program text given, apply default: %s", defaultFilter)
+		args.ProgramText = DEFAULT_FILTER
 	}
 
-	util.Printf("args: %+v", args)
+	// If no input files are supplied check stdin.
+	if len(args.InputFiles) == 0 {
+		args.FromStdin = true
+	}
+
 	return nil
 }
