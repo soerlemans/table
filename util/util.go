@@ -77,7 +77,8 @@ func Logf(t_fmt string, t_args ...interface{}) {
 func Printf(t_fmt string, t_args ...interface{}) {
 	fmtLn := fmt.Sprintln(t_fmt)
 
-	if !DEBUG {
+	// A little more clear than !DEBUG.
+	if DEBUG == false {
 		// On non debug builds just print regularly.
 		fmt.Printf(fmtLn, t_args...)
 	} else {
