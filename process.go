@@ -21,8 +21,8 @@ var idCounter uint64
 func initContext(t_table TableData) Context {
 	ctx := Context{idCounter, t_table}
 
-	// inputLength := len(t_input)
-	util.Logf("initContext: %+v", ctx)
+	ctxStr := util.EtcStruct(ctx, util.ETC80)
+	util.Logf("initContext: %s", ctxStr)
 
 	// Increment id counter.
 	idCounter++

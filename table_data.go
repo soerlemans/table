@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 
 	"github.com/soerlemans/table/util"
@@ -65,9 +64,8 @@ func parseCsv(t_reader io.Reader) (TableData, error) {
 	reader := csv.NewReader(t_reader)
 	records, err := reader.ReadAll()
 
-	recordsStr := fmt.Sprintf("%+v", records)
-	recordsSliced := util.Etc(recordsStr, util.ETC80)
-	util.Logf("records: %s", recordsSliced)
+	recordsStr := util.EtcStruct(records, util.ETC80)
+	util.Logf("records: %s", recordsStr)
 	if err != nil {
 		return table, err
 	}
@@ -137,7 +135,8 @@ func initTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, 
 		table, err = parseExcel(&t_buffer)
 	}
 
-	util.Logf("initTableData: %+v.", table)
+	tableStr := util.EtcStruct(table, util.ETC80)
+	util.Logf("initTableData: %s", tableStr)
 
 	return table, err
 }

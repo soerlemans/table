@@ -5,12 +5,17 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 
 	"github.com/joho/godotenv"
 )
 
 // Specify an enumeration type for the input to the Etc function.
 type EtcWidth int
+
+type EtcWidthType interface {
+	EtcWidth | int
+}
 
 const (
 	// Terminal output should usually be max 80 characters.
@@ -61,16 +66,32 @@ func Quote[T any](t_var T) string {
 }
 
 // Limit a string by a max character count, and append "..." (Etc is short for et cetera).
-func Etc[T EtcWidth | int](t_str string, t_count T) string {
+func Etc[W EtcWidthType](t_str string, t_count W) string {
 	const (
 		etc    = "..."
 		etcLen = len(etc)
 	)
 
+	// Computer the maximum alllowed length and slice it.
 	maxStrlen := int(t_count) - etcLen
 	sliced := t_str[:maxStrlen]
 
+	// Concat and return.
 	return fmt.Sprintf("%s%s", sliced, etc)
+}
+
+// Structs can get very long so summarize.
+func EtcStruct[T any, W EtcWidthType](t_struct T, t_count W) string {
+	var str string
+
+	s := reflect.TypeOf(t_struct)
+	isStruct := (s.Kind() == reflect.Struct)
+	if isStruct {
+		structStr := fmt.Sprintf("%+v", t_struct)
+		str = Etc(structStr, t_count)
+	}
+
+	return str
 }
 
 // Fail unconditionally.
