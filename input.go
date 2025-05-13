@@ -65,7 +65,6 @@ func MultipleTruthy[T any](t_args ...T) []T {
 		if isTrue {
 			truthy = append(truthy, value)
 		}
-
 	}
 
 	return truthy
