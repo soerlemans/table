@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/soerlemans/table/util"
@@ -22,11 +23,40 @@ const (
 
 // Internal representation of the table.
 type TableData struct {
-	// Keep track of string to index mapping.
-	ColumnMap map[string]int
+	// Map strings to indexes.
+	// Used for getting column data by header name.
+	// We zero index instead of glorious Awk.
+	HeadersMap map[string]int
+	Headers    []string
 
-	Columns []string
-	Rows    []string
+	// TODO: See if this plays out or if we want to use []string.
+	// And do the field separation on the fly.
+	RowsData [][]string
+}
+
+func matrix2TableData(t_matrix [][]string) TableData {
+	var table TableData
+
+	// Initialize the headers map.
+	table.HeadersMap = make(map[string]int)
+
+	// An empty csv file is also valid csv so dont error.
+	if len(t_matrix) > 1 {
+		// Initialize headers:
+		for index, header := range t_matrix[0] {
+			table.Headers = append(table.Headers, header)
+			table.HeadersMap[header] = index
+
+			util.Logf("Header: (%d:%s)", index, header)
+		}
+
+		// Initialize fields:
+		for _, row := range t_matrix[1:] {
+			table.RowsData = append(table.RowsData, row)
+		}
+	}
+
+	return table
 }
 
 func parseCsv(t_reader io.Reader) (TableData, error) {
@@ -34,10 +64,15 @@ func parseCsv(t_reader io.Reader) (TableData, error) {
 
 	reader := csv.NewReader(t_reader)
 	records, err := reader.ReadAll()
-	util.Logf("records: %+v", records)
+
+	recordsStr := fmt.Sprintf("%+v", records)
+	recordsSliced := util.Etc(recordsStr, util.ETC80)
+	util.Logf("records: %s", recordsSliced)
 	if err != nil {
 		return table, err
 	}
+
+	table = matrix2TableData(records)
 
 	return table, nil
 }

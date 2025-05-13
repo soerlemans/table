@@ -9,6 +9,16 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Specify an enumeration type for the input to the Etc function.
+type EtcWidth int
+
+const (
+	// Terminal output should usually be max 80 characters.
+	ETC80  EtcWidth = 80
+	ETC120 EtcWidth = 120
+	ETC160 EtcWidth = 160
+)
+
 // Determines if we should log (Not able to be a constant).
 var DEBUG = initDebug()
 
@@ -44,6 +54,25 @@ func initDebug() bool {
 	return debug
 }
 
+// Convert any variable to a string and encircle with quotes.
+func Quote[T any](t_var T) string {
+	return fmt.Sprint("\"", t_var, "\"")
+
+}
+
+// Limit a string by a max character count, and append "..." (Etc is short for et cetera).
+func Etc[T EtcWidth | int](t_str string, t_count T) string {
+	const (
+		etc    = "..."
+		etcLen = len(etc)
+	)
+
+	maxStrlen := int(t_count) - etcLen
+	sliced := t_str[:maxStrlen]
+
+	return fmt.Sprintf("%s%s", sliced, etc)
+}
+
 // Fail unconditionally.
 func Fail(t_err error) {
 	log.Fatalln(t_err)
@@ -56,12 +85,6 @@ func FailIf(t_err error) {
 	if t_err != nil {
 		Fail(t_err)
 	}
-}
-
-// Convert any variable to a string and encircle with quotes.
-func Quote[T any](t_var T) string {
-	return fmt.Sprint("\"", t_var, "\"")
-
 }
 
 // Conditionally log only if DEBUG is set to true.
