@@ -81,22 +81,29 @@ func parseJson(t_reader io.Reader) (TableData, error) {
 func parseExcel(t_reader io.Reader) (TableData, error) {
 	var table TableData
 
-	return table, nil
+	err := errors.New("TODO: initTableMap does not support, EXCEL yet.")
+	return table, err
+
+	// return table, nil
 
 }
 
 func initTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, error) {
 	var table TableData
+	var err error
 
 	switch t_source {
 	case CSV:
+		table, err = parseCsv(&t_buffer)
 
 	case JSON:
+		table, err = parseJson(&t_buffer)
 
 	case EXCEL:
-		err := errors.New("TODO: initTableMap does not support, EXCEL yet.")
-		util.Fail(err)
+		table, err = parseExcel(&t_buffer)
 	}
 
-	return table, nil
+	util.Logf("initTableData: %+v.", table)
+
+	return table, err
 }
