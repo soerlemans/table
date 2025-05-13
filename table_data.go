@@ -33,9 +33,8 @@ func parseCsv(t_reader io.Reader) (TableData, error) {
 	var table TableData
 
 	reader := csv.NewReader(t_reader)
-
 	records, err := reader.ReadAll()
-	util.Println("records: ", records)
+	util.Logf("records: %+v", records)
 	if err != nil {
 		return table, err
 	}
