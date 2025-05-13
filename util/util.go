@@ -17,6 +17,10 @@ type EtcWidthType interface {
 	EtcWidth | int
 }
 
+// TODO: Make a conditional default which checks.
+// For a verbosity flag.
+// var ETC_DEFAULT = initEtcDefault()
+
 const (
 	// Terminal output should usually be max 80 characters.
 	ETC80  EtcWidth = 80
