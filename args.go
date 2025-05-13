@@ -13,6 +13,9 @@ import (
 type Arguments struct {
 	ProgramFile string `arg:"-f,--file" help:"Path to file containing filters."`
 	FromStdin   bool   `arg:"--stdin" help:"Specifies if the program should read from stdin." default:"false"`
+	Csv         bool
+	Json        bool
+	Excel       bool
 
 	// Positional.
 	ProgramText string   `arg:"positional" help:"Filter to execute."`

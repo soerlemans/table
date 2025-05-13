@@ -1,0 +1,102 @@
+package main
+
+import (
+	"bytes"
+	"encoding/csv"
+	"encoding/json"
+	"errors"
+	"io"
+
+	"github.com/soerlemans/table/util"
+	// "github.com/xuri/excelize/v2"
+)
+
+// Defines different supported table source formats.
+type TableDataSource int
+
+const (
+	CSV TableDataSource = iota
+	JSON
+	EXCEL
+)
+
+// Internal representation of the table.
+type TableData struct {
+	// Keep track of string to index mapping.
+	ColumnMap map[string]int
+
+	Columns []string
+	Rows    []string
+}
+
+func parseCsv(t_reader io.Reader) (TableData, error) {
+	var table TableData
+
+	reader := csv.NewReader(t_reader)
+
+	records, err := reader.ReadAll()
+	util.Println("records: ", records)
+	if err != nil {
+		return table, err
+	}
+
+	return table, nil
+}
+
+func parseJson(t_reader io.Reader) (TableData, error) {
+	var table TableData
+
+	var raw []map[string]interface{}
+	decoder := json.NewDecoder(t_reader)
+	err := decoder.Decode(&raw)
+	if err != nil {
+		return table, err
+	}
+
+	if len(raw) == 0 {
+		return table, nil
+	}
+	util.Println("raw: ", raw)
+
+	// headers := []string{}
+	// for k := range raw[0] {
+	// 	headers = append(headers, k)
+	// }
+
+	// rows := [][]string{headers}
+	// for _, obj := range raw {
+	// 	row := []string{}
+	// 	for _, h := range headers {
+	// 		val := fmt.Sprintf("%v", obj[h])
+	// 		row = append(row, val)
+	// 	}
+	// 	rows = append(rows, row)
+	// }
+	// return rows, nil
+
+	return table, nil
+
+}
+
+func parseExcel(t_reader io.Reader) (TableData, error) {
+	var table TableData
+
+	return table, nil
+
+}
+
+func initTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, error) {
+	var table TableData
+
+	switch t_source {
+	case CSV:
+
+	case JSON:
+
+	case EXCEL:
+		err := errors.New("TODO: initTableMap does not support, EXCEL yet.")
+		util.Fail(err)
+	}
+
+	return table, nil
+}

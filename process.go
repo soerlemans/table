@@ -9,18 +9,20 @@ type Context struct {
 	// Identifier.
 	Id uint64
 
+	Table TableData
+
 	// Raw input in row format.
-	Input []string
+	// Input []string
 }
 
 // Gives a unique id for every context.
 var idCounter uint64
 
-func initContext(t_input []string) Context {
-	ctx := Context{idCounter, t_input}
+func initContext(t_table TableData) Context {
+	ctx := Context{idCounter, t_table}
 
-	inputLength := len(t_input)
-	util.Logf("initContext: { Id: %d, size: %d }", idCounter, inputLength)
+	// inputLength := len(t_input)
+	util.Logf("initContext: %+v", ctx)
 
 	// Increment id counter.
 	idCounter++
@@ -35,9 +37,9 @@ func Process(t_ctx Context) []string {
 	// Just create a single data type for processing.
 	// something like a Table structure, consisting of columns, rows, etc.
 
-	for i, line := range t_ctx.Input {
-		util.Printf("line(%d:%d): %s", i, t_ctx.Id, line)
-	}
+	// for i, line := range t_ctx.Input {
+	// 	util.Printf("line(%d:%d): %s", i, t_ctx.Id, line)
+	// }
 
 	return nil
 }
