@@ -50,7 +50,8 @@ func matrix2TableData(t_matrix [][]string) TableData {
 		}
 
 		// Initialize fields:
-		for _, row := range t_matrix[1:] {
+		for index, row := range t_matrix[1:] {
+			util.Logf("Added row(%d): %v", index, row)
 			table.RowsData = append(table.RowsData, row)
 		}
 	}

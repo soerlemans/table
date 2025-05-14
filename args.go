@@ -11,11 +11,12 @@ import (
 
 // Arguments Struct:
 type Arguments struct {
-	ProgramFile string `arg:"-f,--file" help:"Path to file containing filters."`
-	FromStdin   bool   `arg:"--stdin" help:"Specifies if the program should read from stdin." default:"false"`
-	Csv         bool
-	Json        bool
-	Excel       bool
+	ProgramFile    string `arg:"-f,--file" help:"Path to file containing filters."`
+	FromStdin      bool   `arg:"--stdin" help:"Specifies if the program should read from stdin." default:"false"`
+	FieldSeparator rune   `arg:"-F,--field-separator" help:"Define the field separator."`
+	Csv            bool   `help:"Define that input is CSV."`
+	Json           bool   `help:"Define that input is JSON."`
+	Excel          bool   `help:"Define that input is Excel. "`
 
 	// Positional.
 	ProgramText string   `arg:"positional" help:"Filter to execute."`
