@@ -2,6 +2,7 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -114,6 +115,12 @@ func FailIf(t_err error) {
 	if t_err != nil {
 		Fail(t_err)
 	}
+}
+
+func Errorf(t_fmt string, t_args ...interface{}) error {
+	errStr := fmt.Sprintf(t_fmt, t_args...)
+
+	return errors.New(errStr)
 }
 
 // Conditionally log only if DEBUG is set to true.
