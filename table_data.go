@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/soerlemans/table/util"
@@ -33,6 +34,18 @@ type TableData struct {
 	RowsData [][]string
 }
 
+func (this *TableData) CellByColName(t_row int, t_name string) (string, error) {
+	index, ok := this.HeadersMap[t_name]
+	if !ok {
+		errStr := fmt.Sprintf("Non existent column name: %s.", t_name)
+		err := errors.New(errStr)
+		return "", err
+	}
+
+	// this.RowsData[t_row][index]
+}
+
+// Convert a matrix of strings into a TableData struct.
 func matrix2TableData(t_matrix [][]string) TableData {
 	var table TableData
 
