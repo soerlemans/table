@@ -1,6 +1,7 @@
 package main
 
 import (
+	td "github.com/soerlemans/table/table_data"
 	"github.com/soerlemans/table/util"
 )
 
@@ -9,7 +10,7 @@ type Context struct {
 	// Identifier.
 	Id uint64
 
-	Table TableData
+	Table td.TableData
 
 	// Raw input in row format.
 	// Input []string
@@ -18,11 +19,9 @@ type Context struct {
 // Gives a unique id for every context.
 var idCounter uint64
 
-func initContext(t_table TableData) Context {
+func initContext(t_table td.TableData) Context {
 	ctx := Context{idCounter, t_table}
-
-	ctxStr := util.EtcStruct(ctx, util.ETC80)
-	util.Logf("initContext: %s", ctxStr)
+	defer util.LogStructName("initContext", ctx, util.ETC80)
 
 	// Increment id counter.
 	idCounter++

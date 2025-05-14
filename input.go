@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	td "github.com/soerlemans/table/table_data"
 	"github.com/soerlemans/table/util"
 	// "github.com/xuri/excelize/v2"
 )
@@ -79,8 +80,8 @@ func AppendWhen(t_bool bool, t_name string, t_names *[]string) bool {
 	return t_bool
 }
 
-func Arguments2TableDataSource(t_args Arguments) (TableDataSource, error) {
-	var source TableDataSource
+func Arguments2TableDataSource(t_args Arguments) (td.TableDataSource, error) {
+	var source td.TableDataSource
 
 	// Selected supported source formats.
 	var selected []string
@@ -104,15 +105,15 @@ func Arguments2TableDataSource(t_args Arguments) (TableDataSource, error) {
 
 	// Actually set the source to return.
 	if isCsv {
-		source = CSV
+		source = td.CSV
 	} else if isJson {
-		source = JSON
+		source = td.JSON
 	} else if isExcel {
-		source = EXCEL
+		source = td.EXCEL
 	} else {
 		// TODO: Maybe just return an error and then have callee handle it?
 		util.Logf("No input format was selected assuming CSV.")
-		source = CSV
+		source = td.CSV
 	}
 
 	// TODO: Log end result.
@@ -120,8 +121,8 @@ func Arguments2TableDataSource(t_args Arguments) (TableDataSource, error) {
 	return source, nil
 }
 
-func readInputBuffer(t_args Arguments, t_reader io.Reader) (TableData, error) {
-	var table TableData
+func readInputBuffer(t_args Arguments, t_reader io.Reader) (td.TableData, error) {
+	var table td.TableData
 	var buffer bytes.Buffer
 
 	// Copy from stdin.
@@ -138,7 +139,7 @@ func readInputBuffer(t_args Arguments, t_reader io.Reader) (TableData, error) {
 	}
 
 	// Initialize the table data.
-	table, err = initTableData(buffer, source)
+	table, err = td.InitTableData(buffer, source)
 	if err != nil {
 		return table, err
 	}
@@ -146,8 +147,8 @@ func readInputBuffer(t_args Arguments, t_reader io.Reader) (TableData, error) {
 	return table, nil
 }
 
-func readInputStdin(t_args Arguments) ([]TableData, error) {
-	var tables []TableData
+func readInputStdin(t_args Arguments) ([]td.TableData, error) {
+	var tables []td.TableData
 
 	table, err := readInputBuffer(t_args, os.Stdin)
 	if err != nil {
@@ -160,8 +161,8 @@ func readInputStdin(t_args Arguments) ([]TableData, error) {
 	return tables, nil
 }
 
-func readInputFiles(t_args Arguments) ([]TableData, error) {
-	var tables []TableData
+func readInputFiles(t_args Arguments) ([]td.TableData, error) {
+	var tables []td.TableData
 
 	for _, filePath := range t_args.InputFiles {
 		// Read file.	// Open the file
@@ -183,9 +184,9 @@ func readInputFiles(t_args Arguments) ([]TableData, error) {
 	return tables, nil
 }
 
-func readInput(t_args Arguments) ([]TableData, error) {
+func readInput(t_args Arguments) ([]td.TableData, error) {
 	var (
-		tables []TableData
+		tables []td.TableData
 		err    error
 	)
 

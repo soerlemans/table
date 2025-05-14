@@ -1,10 +1,11 @@
-package main
+package table_data
 
 import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/soerlemans/table/util"
@@ -33,8 +34,52 @@ type TableData struct {
 	RowsData [][]string
 }
 
+// Return the amount of rows.
+func (this *TableData) RowLength() int {
+	return len(this.RowsData)
+}
+
+// Get a specific cell by just indices.
+func (this *TableData) CellByIndices(t_row int, t_col int) (string, error) {
+	var cell string
+	defer util.Logf("CellByIndices: %s.", util.Quote(cell))
+
+	if t_row < this.RowLength() {
+		rowSlice := this.RowsData[t_row]
+		if t_col < len(rowSlice) {
+			cell = this.RowsData[t_row][t_col]
+		} else {
+			err := util.Errorf("Column index is out of bounds (%d).", t_col)
+			return cell, err
+		}
+	} else {
+		err := util.Errorf("Row index is out of bounds (%d).", t_row)
+		return cell, err
+	}
+
+	return cell, nil
+}
+
+// Get a specific cell by index and column name.
+func (this *TableData) CellByColName(t_row int, t_name string) (string, error) {
+	// Fetch the index of a header by the resolving the header map.
+	t_col, ok := this.HeadersMap[t_name]
+	if !ok {
+		errStr := fmt.Sprintf("Non existent column name: %s.", t_name)
+		err := errors.New(errStr)
+		return "", err
+	}
+
+	// Now get them by indices.
+	return this.CellByIndices(t_row, t_col)
+}
+
+// Convert a matrix of strings into a TableData struct.
 func matrix2TableData(t_matrix [][]string) TableData {
 	var table TableData
+
+	// FIXME: There is no fix / checking yet if all columns have the same length.
+	// This is an issue for the JSON input.
 
 	// Initialize the headers map.
 	table.HeadersMap = make(map[string]int)
@@ -50,7 +95,8 @@ func matrix2TableData(t_matrix [][]string) TableData {
 		}
 
 		// Initialize fields:
-		for _, row := range t_matrix[1:] {
+		for index, row := range t_matrix[1:] {
+			util.Logf("Added row(%d): %v", index, row)
 			table.RowsData = append(table.RowsData, row)
 		}
 	}
@@ -63,12 +109,10 @@ func parseCsv(t_reader io.Reader) (TableData, error) {
 
 	reader := csv.NewReader(t_reader)
 	records, err := reader.ReadAll()
-
-	recordsStr := util.EtcStruct(records, util.ETC80)
-	util.Logf("records: %s", recordsStr)
 	if err != nil {
 		return table, err
 	}
+	defer util.LogStructName("records", records, util.ETC80)
 
 	table = matrix2TableData(records)
 
@@ -120,9 +164,11 @@ func parseExcel(t_reader io.Reader) (TableData, error) {
 
 }
 
-func initTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, error) {
+func InitTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, error) {
 	var table TableData
 	var err error
+
+	defer util.LogStructName("InitTableData", table, util.ETC80)
 
 	switch t_source {
 	case CSV:
@@ -134,9 +180,6 @@ func initTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, 
 	case EXCEL:
 		table, err = parseExcel(&t_buffer)
 	}
-
-	tableStr := util.EtcStruct(table, util.ETC80)
-	util.Logf("initTableData: %s", tableStr)
 
 	return table, err
 }
