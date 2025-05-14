@@ -8,5 +8,3 @@ import (
 func Parse(t_source string) {
 
 }
-
-func Exec() {}
