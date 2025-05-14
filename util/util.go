@@ -77,8 +77,12 @@ func Etc[W EtcWidthType](t_str string, t_count W) string {
 	)
 
 	// Computer the maximum alllowed length and slice it.
+	// But only perform the slice if we go over the maxStrLen.
 	maxStrlen := int(t_count) - etcLen
-	sliced := t_str[:maxStrlen]
+	sliced := t_str
+	if len(t_str) > maxStrlen {
+		sliced = t_str[:maxStrlen]
+	}
 
 	// Concat and return.
 	return fmt.Sprintf("%s%s", sliced, etc)
@@ -120,6 +124,27 @@ func Logf(t_fmt string, t_args ...interface{}) {
 
 		log.Printf(fmtLn, t_args...)
 	}
+}
+
+// Conditionally log only if DEBUG is set to true.
+func Logln(t_args ...interface{}) {
+	if DEBUG {
+		log.Println(t_args...)
+	}
+}
+
+func LogStructName[T any, W EtcWidthType](t_name string, t_struct T, t_count W) {
+	fullStr := fmt.Sprintf("%s: %+v", t_name, t_struct)
+	etcStr := Etc(fullStr, t_count)
+
+	Logln(etcStr)
+}
+
+func LogStruct[T any, W EtcWidthType](t_struct T, t_count W) {
+	structName := reflect.TypeOf(t_struct).Name()
+
+	// Forward to helper function.
+	LogStructName(structName, t_struct, t_count)
 }
 
 // Conditionally write either to logs or stdout depending on DEBUG.

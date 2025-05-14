@@ -63,12 +63,10 @@ func parseCsv(t_reader io.Reader) (TableData, error) {
 
 	reader := csv.NewReader(t_reader)
 	records, err := reader.ReadAll()
-
-	recordsStr := util.EtcStruct(records, util.ETC80)
-	util.Logf("records: %s", recordsStr)
 	if err != nil {
 		return table, err
 	}
+	defer util.LogStructName("records", records, util.ETC80)
 
 	table = matrix2TableData(records)
 
@@ -124,6 +122,8 @@ func initTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, 
 	var table TableData
 	var err error
 
+	defer util.LogStructName("initTableData", table, util.ETC80)
+
 	switch t_source {
 	case CSV:
 		table, err = parseCsv(&t_buffer)
@@ -134,9 +134,6 @@ func initTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, 
 	case EXCEL:
 		table, err = parseExcel(&t_buffer)
 	}
-
-	tableStr := util.EtcStruct(table, util.ETC80)
-	util.Logf("initTableData: %s", tableStr)
 
 	return table, err
 }
