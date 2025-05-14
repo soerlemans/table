@@ -1,4 +1,4 @@
-package main
+package table_data
 
 import (
 	"bytes"
@@ -164,11 +164,11 @@ func parseExcel(t_reader io.Reader) (TableData, error) {
 
 }
 
-func initTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, error) {
+func InitTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, error) {
 	var table TableData
 	var err error
 
-	defer util.LogStructName("initTableData", table, util.ETC80)
+	defer util.LogStructName("InitTableData", table, util.ETC80)
 
 	switch t_source {
 	case CSV:
