@@ -169,7 +169,7 @@ func InitTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, 
 	var table TableData
 	var err error
 
-	defer u.LogStructName("InitTableData", table, util.ETC80)
+	defer u.LogStructName("InitTableData", table, u.ETC80)
 
 	switch t_source {
 	case CSV:

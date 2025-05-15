@@ -10,22 +10,21 @@ type Filter struct {
 }
 
 // This creates our kind of AST thingy.
-func initFilter(t_text string) (Filter, error)
-{
+func InitFilter(t_text string) (Filter, error) {
 	var filter_ Filter
 	defer u.LogStructName("initFilter", filter_, u.ETC80)
 
-	tokenStream, err := lex(t_text)
+	tokenStream, err := Lex(t_text)
 	if err != nil {
-		return err
+		return filter_, err
 	}
 
-	nodes, err := parse(tokenStream)
+	nodes, err := Parse(tokenStream)
 	if err != nil {
-		return err
+		return filter_, err
 	}
 
 	filter_ = Filter{nodes}
 
-	return filter_
+	return filter_, nil
 }

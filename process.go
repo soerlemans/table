@@ -1,9 +1,9 @@
 package main
 
 import (
+	f "github.com/soerlemans/table/filter"
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
-	f "github.com/soerlemans/table/filter"
 )
 
 // Execution context of a procss required for running the program.
@@ -40,9 +40,10 @@ func Process(t_ctx ProcessContext) []string {
 	// Can then be executed like an AST.
 	// Just create a single data type for processing.
 	// something like a Table structure, consisting of columns, rows, etc.
-	f.initFilter(t_ctx.ProgramText)
+	f.InitFilter(t_ctx.ProgramText)
 
-	for i, line := range t_ctx.Input {
+	rows := t_ctx.Table.RowsData
+	for i, line := range rows {
 		u.Printf("line(%d:%d): %s", i, t_ctx.Id, line)
 	}
 

@@ -48,12 +48,18 @@ const (
 	// These expression do not filter out any rows.
 	MUT
 
+	// Output specifiers:
+	// Selects which columns to output (optionally specify order)).
+	OUT
+
 	// This operation will export the surviving rows to a markdown table.
 	MD
 
 	// This operation will export the surviving rows to JSON.
 	JSON
 )
+
+func TokenType2Str() {}
 
 // Lex the program text and return a TokenStream.
 func Lex(t_text string) (TokenStream, error) {
