@@ -25,8 +25,10 @@ func run(t_args Arguments) error {
 	for _, table := range tables {
 		// Use a lambda to capture localized variables.
 		task := func() {
+			text := t_args.ProgramText
+
 			// Create the context for the task to run.
-			ctx := initContext(table)
+			ctx := initProcessContext(text, table)
 
 			// Start processing.
 			Process(ctx)
