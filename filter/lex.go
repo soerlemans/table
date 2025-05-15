@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"unicode"
+
 	u "github.com/soerlemans/table/util"
 )
 
@@ -9,8 +11,8 @@ type TokenStream []TokenType
 
 const (
 	IDENTIFIER TokenType = iota
-	STRING
 	NUMBER
+	STRING
 
 	// Function calls are identified by an identifier followed directly by a `(`.
 	FUNCTION_CALL
@@ -59,7 +61,35 @@ const (
 	JSON
 )
 
-func TokenType2Str() {}
+// Character Terminals:
+const (
+	DOUBLE_QUOTE_RN = '"'
+
+	DOT_RN         = '.'
+	DOLLAR_SIGN_RN = '$'
+
+	PIPE_RN = '|'
+
+	LESS_THAN_STR       = "<"
+	LESS_THAN_EQUAL_STR = "<="
+
+	EQUAL_STR     = "=="
+	NOT_EQUAL_STR = "!="
+
+	GREATER_THAN_STR       = ">"
+	GREATER_THAN_EQUAL_STR = ">="
+)
+
+// TODO: Document.
+type Token struct {
+	Type  TokenType
+	Value string
+}
+
+// func TokenType2Str(t_type TokenType) String {
+// }
+
+func lexIdentifier(t_text string) {}
 
 // Lex the program text and return a TokenStream.
 func Lex(t_text string) (TokenStream, error) {
@@ -67,9 +97,25 @@ func Lex(t_text string) (TokenStream, error) {
 
 	u.Logf("ProgramText: %s", t_text)
 
-	// for i, rune_ := range t_text {
+	for index, rn := range t_text {
+		textView := t_text[index:]
 
-	// }
+		if unicode.IsSpace(rn) {
+			u.Logln("Skipping whitespace.")
+			continue
+		} else if unicode.IsNumber(rn) {
+			// TODO: Lex numbers.
+		} else if rn == DOUBLE_QUOTE_RN {
+			// TODO: Lex a string.
+		} else if unicode.IsLetter(rn) {
+			// Deal with possible function call.
+			lexIdentifier(textView)
+		} else if rn == DOT_RN {
+			// TODO: Lex name accessor.
+		} else if rn == DOLLAR_SIGN_RN {
+			// TODO: Lex positional accessor.
+		}
+	}
 
 	return stream, nil
 }
