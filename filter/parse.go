@@ -1,12 +1,11 @@
 package filter
 
 import (
-	"github.com/soerlemans/table/util"
+	fn "github.com/soerlemans/table/filter/filter_node"
+	// u "github.com/soerlemans/table/util"
 )
 
 // Source code to parse.
-func Parse(t_source string) {
-
+func Parse(t_stream TokenStream) ([]fn.FilterNode, error) {
+	return nil, nil
 }
-
-func Exec() {}

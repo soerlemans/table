@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/soerlemans/table/util"
+	u "github.com/soerlemans/table/util"
+
 	// "github.com/xuri/excelize/v2"
 )
 
@@ -42,18 +43,18 @@ func (this *TableData) RowLength() int {
 // Get a specific cell by just indices.
 func (this *TableData) CellByIndices(t_row int, t_col int) (string, error) {
 	var cell string
-	defer util.Logf("CellByIndices: %s.", util.Quote(cell))
+	defer u.Logf("CellByIndices: %s.", u.Quote(cell))
 
 	if t_row < this.RowLength() {
 		rowSlice := this.RowsData[t_row]
 		if t_col < len(rowSlice) {
 			cell = this.RowsData[t_row][t_col]
 		} else {
-			err := util.Errorf("Column index is out of bounds (%d).", t_col)
+			err := u.Errorf("Column index is out of bounds (%d).", t_col)
 			return cell, err
 		}
 	} else {
-		err := util.Errorf("Row index is out of bounds (%d).", t_row)
+		err := u.Errorf("Row index is out of bounds (%d).", t_row)
 		return cell, err
 	}
 
@@ -91,12 +92,12 @@ func matrix2TableData(t_matrix [][]string) TableData {
 			table.Headers = append(table.Headers, header)
 			table.HeadersMap[header] = index
 
-			util.Logf("Header: (%d:%s)", index, header)
+			u.Logf("Header: (%d:%s)", index, header)
 		}
 
 		// Initialize fields:
 		for index, row := range t_matrix[1:] {
-			util.Logf("Added row(%d): %v", index, row)
+			u.Logf("Added row(%d): %v", index, row)
 			table.RowsData = append(table.RowsData, row)
 		}
 	}
@@ -112,7 +113,7 @@ func parseCsv(t_reader io.Reader) (TableData, error) {
 	if err != nil {
 		return table, err
 	}
-	defer util.LogStructName("records", records, util.ETC80)
+	defer u.LogStructName("records", records, u.ETC80)
 
 	table = matrix2TableData(records)
 
@@ -132,7 +133,7 @@ func parseJson(t_reader io.Reader) (TableData, error) {
 	if len(raw) == 0 {
 		return table, nil
 	}
-	util.Println("raw: ", raw)
+	u.Println("raw: ", raw)
 
 	// headers := []string{}
 	// for k := range raw[0] {
@@ -157,7 +158,7 @@ func parseJson(t_reader io.Reader) (TableData, error) {
 func parseExcel(t_reader io.Reader) (TableData, error) {
 	var table TableData
 
-	err := errors.New("TODO: initTableMap does not support, EXCEL yet.")
+	err := errors.New("TODO: initTableData does not support, EXCEL yet.")
 	return table, err
 
 	// return table, nil
@@ -168,7 +169,7 @@ func InitTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, 
 	var table TableData
 	var err error
 
-	defer util.LogStructName("InitTableData", table, util.ETC80)
+	defer u.LogStructName("InitTableData", table, u.ETC80)
 
 	switch t_source {
 	case CSV:
