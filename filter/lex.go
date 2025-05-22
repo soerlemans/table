@@ -82,6 +82,15 @@ const (
 	GREATER_THAN_EQUAL_STR = ">="
 )
 
+// Keyword mappings:
+var Keywords = map[string]TokenType{
+	"when": WHEN,
+	"mut":  MUT,
+	"out":  OUT,
+	"md":   MD,
+	"json": JSON,
+}
+
 // Errors:
 var (
 	ErrInvalidRune           = errors.New("Invalid rune")
@@ -138,6 +147,15 @@ func lexNumbers(t_stream *Stream) (Token, error) {
 
 }
 
+func checkKeyword(t_token *Token) {
+	tokenType, ok := Keywords[t_token.Value]
+	if ok {
+		u.Logf("Keyword found: %s", t_token.Value)
+
+		t_token.Type = tokenType
+	}
+}
+
 func lexIdentifier(t_stream *Stream) (Token, error) {
 	var token Token
 	initialRn := t_stream.Current()
@@ -172,6 +190,9 @@ func lexIdentifier(t_stream *Stream) (Token, error) {
 
 		return token, err
 	}
+
+	// Check if we have an identifier that is a keyword.
+	checkKeyword(&token)
 
 	return token, nil
 
