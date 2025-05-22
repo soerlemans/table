@@ -82,7 +82,26 @@ const (
 	GREATER_THAN_EQUAL_STR = ">="
 )
 
-// Keyword mappings:
+// Single rune symbols mapped to TokenType.
+var singleRuneSymbols = map[string]TokenType{
+	string(DOT_RN):         ACCESSOR_NAME,
+	string(DOLLAR_SIGN_RN): ACCESSOR_POSITIONAL,
+	string(PIPE_RN):        PIPE,
+}
+
+// Multi rune symbols mapped to TokenType.
+var multiRuneSymbols = map[string]TokenType{
+	LESS_THAN_STR:       LESS_THAN,
+	LESS_THAN_EQUAL_STR: LESS_THAN_EQUAL,
+
+	EQUAL_STR:     EQUAL,
+	NOT_EQUAL_STR: NOT_EQUAL,
+
+	GREATER_THAN_STR:       GREATER_THAN,
+	GREATER_THAN_EQUAL_STR: GREATER_THAN_EQUAL,
+}
+
+// Keywords mapped to TokenType.
 var Keywords = map[string]TokenType{
 	"when": WHEN,
 	"mut":  MUT,
@@ -233,6 +252,12 @@ func lexString(t_stream *Stream) (Token, error) {
 	}
 
 	return token, nil
+}
+
+func lexSymbol(t_stream *Stream) (Token, bool) {
+	var token Token
+
+	return token, true
 }
 
 // Lex the program text and return a TokenVec.
