@@ -6,6 +6,6 @@ import (
 )
 
 // Source code to parse.
-func Parse(t_stream TokenStream) ([]fn.FilterNode, error) {
+func Parse(t_stream TokenVec) ([]fn.FilterNode, error) {
 	return nil, nil
 }

@@ -1,13 +1,15 @@
 package filter
 
 import (
+	"errors"
+	"fmt"
 	"unicode"
 
 	u "github.com/soerlemans/table/util"
 )
 
 type TokenType uint64
-type TokenStream []TokenType
+type TokenVec []TokenType
 
 const (
 	IDENTIFIER TokenType = iota
@@ -80,42 +82,173 @@ const (
 	GREATER_THAN_EQUAL_STR = ">="
 )
 
-// TODO: Document.
-type Token struct {
-	Type  TokenType
-	Value string
+// Errors:
+var (
+	ErrInvalidRune           = errors.New("Invalid rune")
+	ErrIncorrectStartingRune = errors.New("Incorrect starting rune")
+	ErrUnterminated          = errors.New("Unterminated")
+)
+
+func incorrectStartingRune(t_preamble string, t_rn rune) error {
+	return fmt.Errorf("%s do not start with '%c'(%w).", t_preamble, t_rn, ErrIncorrectStartingRune)
+}
+
+func unterminated(t_preamble string, t_rn rune) error {
+	return fmt.Errorf("unterminated %s expected '%c'(%w).", t_rn, ErrUnterminated)
+
 }
 
 // func TokenType2Str(t_type TokenType) String {
 // }
 
-func lexIdentifier(t_text string) {}
+func lexNumbers(t_stream *Stream) (Token, error) {
+	var token Token
+	initialRn := t_stream.Current()
 
-// Lex the program text and return a TokenStream.
-func Lex(t_text string) (TokenStream, error) {
-	var stream TokenStream
+	if unicode.IsNumber(initialRn) {
+		var value string
+		for !t_stream.Eos() {
+			// Get current rune.
+			rn := t_stream.Current()
+			if unicode.IsNumber(rn) {
+				value += string(rn)
+			} else {
+				// Double quote so end of string.
+				break
+			}
+
+			// Inch stream forward.
+			t_stream.Next()
+
+			// Error handle.
+			if t_stream.Eos() {
+				// If we run out of numbers its fine.
+				break
+			}
+		}
+
+		token = InitToken(STRING, value)
+	} else {
+		err := incorrectStartingRune("numbers", initialRn)
+
+		return token, err
+	}
+
+	return token, nil
+
+}
+
+func lexIdentifier(t_stream *Stream) (Token, error) {
+	var token Token
+	initialRn := t_stream.Current()
+
+	if unicode.IsLetter(initialRn) {
+		var value string
+		for !t_stream.Eos() {
+			// Get current rune.
+			rn := t_stream.Current()
+			alphaNumeric := unicode.IsLetter(rn) || unicode.IsNumber(rn)
+			if alphaNumeric {
+				value += string(rn)
+			} else {
+				// Double quote so end of string.
+				break
+			}
+
+			// Inch stream forward.
+			t_stream.Next()
+
+			// Error handle.
+			if t_stream.Eos() {
+				// If we run out of alphanumerics its fine.
+				break
+			}
+
+		}
+
+		token = InitToken(STRING, value)
+	} else {
+		err := incorrectStartingRune("identifiers", initialRn)
+
+		return token, err
+	}
+
+	return token, nil
+
+}
+
+func lexString(t_stream *Stream) (Token, error) {
+	var token Token
+	initialRn := t_stream.Current()
+
+	if initialRn == DOUBLE_QUOTE_RN {
+		var value string
+		for !t_stream.Eos() {
+			// Inch stream forward.
+			t_stream.Next()
+
+			// Error handle.
+			if t_stream.Eos() {
+				err := unterminated("string", DOUBLE_QUOTE_RN)
+
+				return token, err
+			}
+
+			// Get current rune.
+			rn := t_stream.Current()
+			if rn != DOUBLE_QUOTE_RN {
+				value += string(rn)
+			} else {
+				// Double quote so end of string.
+				break
+			}
+		}
+
+		token = InitToken(STRING, value)
+	} else {
+		err := incorrectStartingRune("strings", initialRn)
+
+		return token, err
+	}
+
+	return token, nil
+}
+
+// Lex the program text and return a TokenVec.
+func Lex(t_text string) (TokenVec, error) {
+	var tokenVec TokenVec
 
 	u.Logf("ProgramText: %s", t_text)
 
-	for index, rn := range t_text {
-		textView := t_text[index:]
+	runeStream := initStream(&t_text)
+
+	for !runeStream.Eos() {
+		rn := runeStream.Current()
 
 		if unicode.IsSpace(rn) {
 			u.Logln("Skipping whitespace.")
+			runeStream.Next()
 			continue
 		} else if unicode.IsNumber(rn) {
 			// TODO: Lex numbers.
 		} else if rn == DOUBLE_QUOTE_RN {
 			// TODO: Lex a string.
+			lexString(&runeStream)
 		} else if unicode.IsLetter(rn) {
 			// Deal with possible function call.
-			lexIdentifier(textView)
+			lexIdentifier(&runeStream)
 		} else if rn == DOT_RN {
 			// TODO: Lex name accessor.
 		} else if rn == DOLLAR_SIGN_RN {
 			// TODO: Lex positional accessor.
+		} else {
+			// ERROR HANDLE UNHANDLED.
+			u.Logf("Unhandled rune: %c", rn)
+
+			err := fmt.Errorf("Invalid rune for lexing '%c' (%w).", rn, ErrInvalidRune)
+			return tokenVec, err
 		}
 	}
 
-	return stream, nil
+	return tokenVec, nil
 }
