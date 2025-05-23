@@ -33,6 +33,8 @@ func itemList(t_stream *TokenStream) (NodeListPtr, error) {
 
 		if nodePtr != nil {
 			list = append(list, nodePtr)
+		} else {
+			break
 		}
 	}
 
@@ -46,6 +48,10 @@ func program(t_stream *TokenStream) (NodeListPtr, error) {
 
 // Source code to parse.
 func Parse(t_stream *TokenStream) (NodeListPtr, error) {
+	list, err := program(t_stream)
+	if err != nil {
+		return list, err
+	}
 
-	return nil, nil
+	return list, nil
 }
