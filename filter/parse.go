@@ -5,10 +5,18 @@ import (
 	u "github.com/soerlemans/table/util"
 )
 
-type Ast []fn.FilterNode
+type NodeList []fn.FilterNode
+
+func itemList() {}
+
+func program() (NodeList, error) {
+	var ast NodeList
+
+	return ast, nil
+}
 
 // Source code to parse.
-func Parse(t_stream TokenVec) (Ast, error) {
+func Parse(t_stream TokenVec) (NodeList, error) {
 
 	return nil, nil
 }
