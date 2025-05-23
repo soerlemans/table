@@ -9,15 +9,84 @@ import (
 
 // Errors:
 var (
-	ErrNodeEmpty = errors.New("")
+	ErrNodeEmpty     = errors.New("Expected a node")
+	ErrUnexpectedEos = errors.New("Unexpected end of stream")
+	ErrExpectedToken = errors.New("Expected token")
 )
 
 // Import these as we use them frequently.
 type NodeListPtr fn.NodeListPtr
 type NodePtr fn.NodePtr
 
-func item() (NodePtr, error) {
+// TODO: Implement.
+func errExpectedToken() {}
+
+func keyword(t_stream *TokenStream) (NodePtr, error) {
 	var node NodePtr
+
+	return node, nil
+}
+
+func rvalue(t_stream *TokenStream) (NodePtr, error) {
+	var node NodePtr
+
+	return node, nil
+}
+
+func expr(t_stream *TokenStream) (NodePtr, error) {
+	var node NodePtr
+
+	rval, err := rvalue(t_stream)
+	if err != nil {
+		return node, err
+	}
+
+	if rval != nil {
+		if t_stream.Eos() {
+			// TODO: Throw error.
+		}
+
+		token := t_stream.Current()
+
+		switch token.Type {
+		case LESS_THAN:
+			break
+
+		case LESS_THAN_EQUAL:
+			break
+
+		case EQUAL:
+			break
+
+		case NOT_EQUAL:
+			break
+
+		case GREATER_THAN:
+			break
+
+		case GREATER_THAN_EQUAL:
+			break
+		}
+	}
+
+	return node, nil
+}
+
+func item(t_stream *TokenStream) (NodePtr, error) {
+	var node NodePtr
+
+	// Check for keywords.
+	if keywordPtr, err := keyword(t_stream); node != nil {
+		node = keywordPtr
+	} else if err != nil {
+		return node, err
+
+		// Check for an epxression.
+	} else if exprPtr, err := expr(t_stream); node != nil {
+		node = exprPtr
+	} else if err != nil {
+		return node, err
+	}
 
 	return node, nil
 }
@@ -26,13 +95,13 @@ func itemList(t_stream *TokenStream) (NodeListPtr, error) {
 	var list NodeListPtr
 
 	for {
-		nodePtr, err := item()
+		node, err := item(t_stream)
 		if err != nil {
 			return list, err
 		}
 
-		if nodePtr != nil {
-			list = append(list, nodePtr)
+		if node != nil {
+			list = append(list, node)
 		} else {
 			break
 		}
