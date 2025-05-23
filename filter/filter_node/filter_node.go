@@ -8,6 +8,6 @@ type NodePtr *FilterNode
 type FilterNode interface {
 	// TODO: Implement.
 
-	eval()
-	print()
+	//	eval()
+	//	print()
 }

@@ -33,15 +33,40 @@ func rvalue(t_stream *TokenStream) (NodePtr, error) {
 	return node, nil
 }
 
-func expr(t_stream *TokenStream) (NodePtr, error) {
+// Initialize the comparison.
+func initComparison[T fn.ComparisonType](t_stream *TokenStream, t_lhs NodePtr) (NodePtr, error) {
 	var node NodePtr
 
-	rval, err := rvalue(t_stream)
+	t_stream.Next()
+	if t_stream.Eos() {
+		// TODO: Throw error.
+	}
+
+	rhs, err := rvalue(t_stream)
 	if err != nil {
 		return node, err
 	}
 
-	if rval != nil {
+	if rhs == nil {
+		// TODO: Error expected a node.
+		return node, nil
+	}
+
+	comp := fn.InitComparison[T](t_lhs, rhs)
+	node = &comp
+
+	return node, nil
+}
+
+func expr(t_stream *TokenStream) (NodePtr, error) {
+	var node NodePtr
+
+	lhs, err := rvalue(t_stream)
+	if err != nil {
+		return node, err
+	}
+
+	if lhs != nil {
 		if t_stream.Eos() {
 			// TODO: Throw error.
 		}
@@ -50,6 +75,7 @@ func expr(t_stream *TokenStream) (NodePtr, error) {
 
 		switch token.Type {
 		case LESS_THAN:
+
 			break
 
 		case LESS_THAN_EQUAL:
