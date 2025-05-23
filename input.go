@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	td "github.com/soerlemans/table/table_data"
-	"github.com/soerlemans/table/util"
+	u "github.com/soerlemans/table/util"
 	// "github.com/xuri/excelize/v2"
 )
 
@@ -96,7 +96,7 @@ func Arguments2TableDataSource(t_args Arguments) (td.TableDataSource, error) {
 	if count > 1 {
 		// TODO: This adds a space at the end but atm who cares, strip later.
 		truthyStr := strings.Join(selected, ", ")
-		truthyQuoted := util.Quote(truthyStr)
+		truthyQuoted := u.Quote(truthyStr)
 		errStr := fmt.Sprintf("Multiple input formats selected: %s.", truthyQuoted)
 		err := errors.New(errStr)
 
@@ -112,7 +112,7 @@ func Arguments2TableDataSource(t_args Arguments) (td.TableDataSource, error) {
 		source = td.EXCEL
 	} else {
 		// TODO: Maybe just return an error and then have callee handle it?
-		util.Logf("No input format was selected assuming CSV.")
+		u.Logf("No input format was selected assuming CSV.")
 		source = td.CSV
 	}
 
@@ -127,7 +127,7 @@ func readInputBuffer(t_args Arguments, t_reader io.Reader) (td.TableData, error)
 
 	// Copy from stdin.
 	bytesWritten, err := io.Copy(&buffer, t_reader)
-	util.Logf("Bytes read from reader: %d", bytesWritten)
+	u.Logf("Bytes read from reader: %d", bytesWritten)
 	if err != nil {
 		return table, err
 	}

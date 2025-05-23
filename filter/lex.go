@@ -9,7 +9,7 @@ import (
 )
 
 type TokenType uint64
-type TokenVec []TokenType
+type TokenVec []Token
 
 const (
 	IDENTIFIER TokenType = iota
@@ -184,11 +184,11 @@ func lexIdentifier(t_stream *Stream) (Token, error) {
 		for !t_stream.Eos() {
 			// Get current rune.
 			rn := t_stream.Current()
-			alphaNumeric := unicode.IsLetter(rn) || unicode.IsNumber(rn)
-			if alphaNumeric {
+			validIdentifierRune := unicode.IsLetter(rn) || unicode.IsNumber(rn) || rn == '_'
+			if validIdentifierRune {
 				value += string(rn)
 			} else {
-				// Double quote so end of string.
+				// No more alphanumerics means end of string.
 				break
 			}
 
@@ -254,10 +254,64 @@ func lexString(t_stream *Stream) (Token, error) {
 	return token, nil
 }
 
-func lexSymbol(t_stream *Stream) (Token, bool) {
+func lexSingleSymbol(t_text *string) (Token, bool) {
 	var token Token
 
-	return token, true
+	text := *t_text
+	tokenType, ok := singleRuneSymbols[text]
+
+	if ok {
+		u.Logf("Found a single rune symbol: %s", text)
+		token = InitToken(tokenType, text)
+
+		return token, true
+	}
+
+	return token, false
+}
+
+func lexMultiSymbol(t_text *string) (Token, bool) {
+	var token Token
+
+	text := *t_text
+	tokenType, ok := multiRuneSymbols[text]
+
+	if ok {
+		u.Logf("Found a multi rune symbol: %s", text)
+		token = InitToken(tokenType, text)
+
+		return token, true
+	}
+
+	return token, false
+
+}
+
+func lexSymbol(t_stream *Stream) (Token, bool) {
+	var (
+		token       Token
+		foundSymbol bool // Defaults to false.
+	)
+
+	rn := t_stream.Current()
+	buf := string(rn)
+	token, foundSymbol = lexSingleSymbol(&buf)
+
+	if !foundSymbol {
+		rn, ok := t_stream.Peek()
+
+		if ok {
+			buf += string(rn)
+
+			token, foundSymbol = lexMultiSymbol(&buf)
+
+			// Skip to the next char.
+			t_stream.Next()
+			t_stream.Next()
+		}
+	}
+
+	return token, foundSymbol
 }
 
 // Lex the program text and return a TokenVec.
@@ -276,23 +330,39 @@ func Lex(t_text string) (TokenVec, error) {
 			runeStream.Next()
 			continue
 		} else if unicode.IsNumber(rn) {
-			// TODO: Lex numbers.
+			token, err := lexNumbers(&runeStream)
+			if err != nil {
+				return tokenVec, err
+			}
+
+			tokenVec = append(tokenVec, token)
 		} else if rn == DOUBLE_QUOTE_RN {
 			// TODO: Lex a string.
-			lexString(&runeStream)
+			token, err := lexString(&runeStream)
+			if err != nil {
+				return tokenVec, err
+			}
+
+			tokenVec = append(tokenVec, token)
 		} else if unicode.IsLetter(rn) {
 			// Deal with possible function call.
-			lexIdentifier(&runeStream)
-		} else if rn == DOT_RN {
-			// TODO: Lex name accessor.
-		} else if rn == DOLLAR_SIGN_RN {
-			// TODO: Lex positional accessor.
-		} else {
-			// ERROR HANDLE UNHANDLED.
-			u.Logf("Unhandled rune: %c", rn)
+			token, err := lexIdentifier(&runeStream)
+			if err != nil {
+				return tokenVec, err
+			}
 
-			err := fmt.Errorf("Invalid rune for lexing '%c' (%w).", rn, ErrInvalidRune)
-			return tokenVec, err
+			tokenVec = append(tokenVec, token)
+		} else {
+			token, found := lexSymbol(&runeStream)
+			tokenVec = append(tokenVec, token)
+
+			// Error handle unhandled tokens:
+			if !found {
+				u.Logf("Unhandled rune: %c", rn)
+
+				err := fmt.Errorf("Invalid rune for lexing '%c' (%w).", rn, ErrInvalidRune)
+				return tokenVec, err
+			}
 		}
 	}
 
