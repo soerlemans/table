@@ -60,7 +60,7 @@ func initArgs() (Arguments, error) {
 
 	// Parse and handle arguments.
 	arg.MustParse(&args)
-	defer util.Logf("args: %+v", args)
+	defer func() { util.Logf("args: %+v", args) }()
 
 	// Logging:
 	err := handleProgramFile(&args)

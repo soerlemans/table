@@ -12,14 +12,14 @@ type Filter struct {
 // This creates our kind of AST thingy.
 func InitFilter(t_text string) (Filter, error) {
 	var filter_ Filter
-	defer u.LogStructName("initFilter", filter_, u.ETC80)
+	defer func() { u.LogStructName("initFilter", filter_, u.ETC80) }()
 
-	tokenStream, err := Lex(t_text)
+	tokenVec, err := Lex(t_text)
 	if err != nil {
 		return filter_, err
 	}
 
-	nodes, err := Parse(tokenStream)
+	nodes, err := Parse(tokenVec)
 	if err != nil {
 		return filter_, err
 	}

@@ -12,7 +12,7 @@ type Token struct {
 
 func InitToken(t_type TokenType, t_value string) Token {
 	token := Token{t_type, t_value}
-	defer u.LogStructName("InitToken", token, u.ETC80)
+	defer func() { u.LogStructName("InitToken", token, u.ETC80) }()
 
 	return token
 }

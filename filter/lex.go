@@ -293,20 +293,26 @@ func lexSymbol(t_stream *Stream) (Token, bool) {
 		foundSymbol bool // Defaults to false.
 	)
 
+	// Handle potential single rune symbols.
 	rn := t_stream.Current()
 	buf := string(rn)
 	token, foundSymbol = lexSingleSymbol(&buf)
+	if foundSymbol {
+		t_stream.Next()
+	}
 
-	if !foundSymbol {
-		rn, ok := t_stream.Peek()
+	// Handle potential multi rune symbols.
+	if !t_stream.Eos() {
+		rn := t_stream.Current()
 
-		if ok {
-			buf += string(rn)
+		buf += string(rn)
+		tokenMulti, foundMultiSymbol := lexMultiSymbol(&buf)
 
-			token, foundSymbol = lexMultiSymbol(&buf)
+		if foundMultiSymbol {
+			token = tokenMulti
+			foundSymbol = foundMultiSymbol
 
 			// Skip to the next char.
-			t_stream.Next()
 			t_stream.Next()
 		}
 	}
@@ -317,6 +323,7 @@ func lexSymbol(t_stream *Stream) (Token, bool) {
 // Lex the program text and return a TokenVec.
 func Lex(t_text string) (TokenVec, error) {
 	var tokenVec TokenVec
+	defer func() { u.Logf("tokenVec: %v", tokenVec) }()
 
 	u.Logf("ProgramText: %s", t_text)
 
@@ -354,7 +361,6 @@ func Lex(t_text string) (TokenVec, error) {
 			tokenVec = append(tokenVec, token)
 		} else {
 			token, found := lexSymbol(&runeStream)
-			tokenVec = append(tokenVec, token)
 
 			// Error handle unhandled tokens:
 			if !found {
@@ -363,6 +369,8 @@ func Lex(t_text string) (TokenVec, error) {
 				err := fmt.Errorf("Invalid rune for lexing '%c' (%w).", rn, ErrInvalidRune)
 				return tokenVec, err
 			}
+
+			tokenVec = append(tokenVec, token)
 		}
 	}
 
