@@ -6,4 +6,6 @@ type FilterNodes []FilterNode
 // Interface for interacting with filter nodes.
 type FilterNode interface {
 	// TODO: Implement.
+	exec()
+	print()
 }
