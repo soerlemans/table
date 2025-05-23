@@ -1,9 +1,13 @@
 package filter_node
 
-// Alias for a slice of FilterNode's.
-type FilterNodes []FilterNode
+// These are pointers, garbage collector keeps them in scope.
+type NodeListPtr []*FilterNode
+type NodePtr *FilterNode
 
 // Interface for interacting with filter nodes.
 type FilterNode interface {
 	// TODO: Implement.
+
+	eval()
+	print()
 }

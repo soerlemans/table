@@ -9,7 +9,6 @@ import (
 	"io"
 
 	u "github.com/soerlemans/table/util"
-
 	// "github.com/xuri/excelize/v2"
 )
 
@@ -43,7 +42,7 @@ func (this *TableData) RowLength() int {
 // Get a specific cell by just indices.
 func (this *TableData) CellByIndices(t_row int, t_col int) (string, error) {
 	var cell string
-	defer u.Logf("CellByIndices: %s.", u.Quote(cell))
+	defer func() { u.Logf("CellByIndices: %s.", u.Quote(cell)) }()
 
 	if t_row < this.RowLength() {
 		rowSlice := this.RowsData[t_row]
@@ -113,7 +112,7 @@ func parseCsv(t_reader io.Reader) (TableData, error) {
 	if err != nil {
 		return table, err
 	}
-	defer u.LogStructName("records", records, u.ETC80)
+	defer func() { u.LogStructName("records", records, u.ETC80) }()
 
 	table = matrix2TableData(records)
 
@@ -169,7 +168,7 @@ func InitTableData(t_buffer bytes.Buffer, t_source TableDataSource) (TableData, 
 	var table TableData
 	var err error
 
-	defer u.LogStructName("InitTableData", table, u.ETC80)
+	defer func() { u.LogStructName("InitTableData", table, u.ETC80) }()
 
 	switch t_source {
 	case CSV:

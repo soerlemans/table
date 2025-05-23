@@ -26,7 +26,7 @@ var idCounter uint64
 
 func initProcessContext(t_text string, t_table td.TableData) ProcessContext {
 	ctx := ProcessContext{idCounter, t_text, t_table}
-	defer u.LogStructName("initContext", ctx, u.ETC80)
+	defer func() { u.LogStructName("initContext", ctx, u.ETC80) }()
 
 	// Increment id counter.
 	idCounter++
