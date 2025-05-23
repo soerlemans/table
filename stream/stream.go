@@ -11,6 +11,6 @@ type Stream[V any] interface {
 	Prev()
 	Next()
 	Peek() (V, bool)
-	Eos() bool
 	Append(V)
+	Eos() bool
 }

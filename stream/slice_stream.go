@@ -5,12 +5,14 @@ type SliceStream[T any] struct {
 	Index int
 }
 
+// Get current item.
 func (this *SliceStream[T]) Current() T {
 	view := *(this.View)
 
 	return view[this.Index]
 }
 
+// Decrement the index.
 func (this *SliceStream[T]) Prev() {
 	this.Index--
 }
@@ -27,7 +29,7 @@ func (this *SliceStream[T]) Peek() (T, bool) {
 	this.Next()
 	ok := !this.Eos()
 
-	// Only get the rune if its valid.
+	// Only get the value if its valid.
 	if ok {
 		val = this.Current()
 	}
@@ -38,7 +40,12 @@ func (this *SliceStream[T]) Peek() (T, bool) {
 
 // Append to the stream.
 func (this *SliceStream[T]) Append(t_value T) {
-	*this.View = append(*this.View, t_value)
+	// Account for if the stream no elems yet.
+	if this.View == nil {
+		this.View = &[]T{t_value}
+	} else {
+		*this.View = append(*this.View, t_value)
+	}
 }
 
 // Short for End Of SliceStream[T].

@@ -6,7 +6,7 @@ import (
 )
 
 // TokenStream used later in parsing.
-type TokenStream s.SliceStream[Token]
+type TokenStream = s.SliceStream[Token]
 
 // TokenType specification.
 type TokenType uint64

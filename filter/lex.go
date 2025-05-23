@@ -271,7 +271,7 @@ func lexSymbol(t_stream *s.StringStream) (Token, bool) {
 // Lex the program text and return a TokenVec.
 func Lex(t_text string) (TokenStream, error) {
 	var tokenStream TokenStream
-	defer func() { u.Logf("tokenStream: %v", tokenStream) }()
+	defer func() { u.Logf("tokenStream: %v", tokenStream.View) }()
 
 	u.Logf("ProgramText: %s", t_text)
 
@@ -310,7 +310,7 @@ func Lex(t_text string) (TokenStream, error) {
 		} else {
 			token, found := lexSymbol(&runeStream)
 
-			// Error handle unhandled tokens:
+			// Error handle, unhandled tokens:
 			if !found {
 				u.Logf("Unhandled rune: %c", rn)
 
