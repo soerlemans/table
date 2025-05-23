@@ -269,9 +269,9 @@ func lexSymbol(t_stream *s.StringStream) (Token, bool) {
 }
 
 // Lex the program text and return a TokenVec.
-func Lex(t_text string) (TokenVec, error) {
-	var tokenVec TokenVec
-	defer func() { u.Logf("tokenVec: %v", tokenVec) }()
+func Lex(t_text string) (TokenStream, error) {
+	var tokenStream TokenStream
+	defer func() { u.Logf("tokenStream: %v", tokenStream) }()
 
 	u.Logf("ProgramText: %s", t_text)
 
@@ -287,26 +287,26 @@ func Lex(t_text string) (TokenVec, error) {
 		} else if unicode.IsNumber(rn) {
 			token, err := lexNumbers(&runeStream)
 			if err != nil {
-				return tokenVec, err
+				return tokenStream, err
 			}
 
-			tokenVec = append(tokenVec, token)
+			tokenStream.Append(token)
 		} else if rn == DOUBLE_QUOTE_RN {
 			// TODO: Lex a string.
 			token, err := lexString(&runeStream)
 			if err != nil {
-				return tokenVec, err
+				return tokenStream, err
 			}
 
-			tokenVec = append(tokenVec, token)
+			tokenStream.Append(token)
 		} else if unicode.IsLetter(rn) {
 			// Deal with possible function call.
 			token, err := lexIdentifier(&runeStream)
 			if err != nil {
-				return tokenVec, err
+				return tokenStream, err
 			}
 
-			tokenVec = append(tokenVec, token)
+			tokenStream.Append(token)
 		} else {
 			token, found := lexSymbol(&runeStream)
 
@@ -315,12 +315,12 @@ func Lex(t_text string) (TokenVec, error) {
 				u.Logf("Unhandled rune: %c", rn)
 
 				err := fmt.Errorf("Invalid rune for lexing '%c' (%w).", rn, ErrInvalidRune)
-				return tokenVec, err
+				return tokenStream, err
 			}
 
-			tokenVec = append(tokenVec, token)
+			tokenStream.Append(token)
 		}
 	}
 
-	return tokenVec, nil
+	return tokenStream, nil
 }

@@ -36,6 +36,11 @@ func (this *StringStream) Peek() (rune, bool) {
 	return rn, ok
 }
 
+// Append to the stream.
+func (this *StringStream) Append(t_value string) {
+	*this.View = *this.View + t_value
+}
+
 // Short for End Of StringStream.
 func (this *StringStream) Eos() bool {
 	return this.Index >= len(*this.View)

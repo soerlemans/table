@@ -1,12 +1,11 @@
 package filter
 
 import (
-	fn "github.com/soerlemans/table/filter/filter_node"
 	u "github.com/soerlemans/table/util"
 )
 
 type Filter struct {
-	Nodes []fn.FilterNode
+	Nodes NodeListPtr
 }
 
 // This creates our kind of AST thingy.
@@ -14,12 +13,12 @@ func InitFilter(t_text string) (Filter, error) {
 	var filter_ Filter
 	defer func() { u.LogStructName("initFilter", filter_, u.ETC80) }()
 
-	tokenVec, err := Lex(t_text)
+	tokenStream, err := Lex(t_text)
 	if err != nil {
 		return filter_, err
 	}
 
-	nodes, err := Parse(tokenVec)
+	nodes, err := Parse(&tokenStream)
 	if err != nil {
 		return filter_, err
 	}

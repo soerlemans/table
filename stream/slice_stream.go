@@ -36,6 +36,11 @@ func (this *SliceStream[T]) Peek() (T, bool) {
 	return val, ok
 }
 
+// Append to the stream.
+func (this *SliceStream[T]) Append(t_value T) {
+	*this.View = append(*this.View, t_value)
+}
+
 // Short for End Of SliceStream[T].
 func (this *SliceStream[T]) Eos() bool {
 	return this.Index >= len(*this.View)

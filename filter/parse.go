@@ -1,28 +1,51 @@
 package filter
 
 import (
+	"errors"
+
 	fn "github.com/soerlemans/table/filter/filter_node"
 	// u "github.com/soerlemans/table/util"
 )
 
-type NodeList []fn.FilterNode
-type Node fn.FilterNode
+// Errors:
+var (
+	ErrNodeEmpty = errors.New("")
+)
 
-func item() (Node, error) {}
+// Import these as we use them frequently.
+type NodeListPtr fn.NodeListPtr
+type NodePtr fn.NodePtr
 
-func itemList() (NodeList, error) {
-	for {
-	}
+func item() (NodePtr, error) {
+	var node NodePtr
+
+	return node, nil
 }
 
-func program(t_stream *TokenStream) (NodeList, error) {
-	var ast NodeList
+func itemList(t_stream *TokenStream) (NodeListPtr, error) {
+	var list NodeListPtr
 
-	return ast, nil
+	for {
+		nodePtr, err := item()
+		if err != nil {
+			return list, err
+		}
+
+		if nodePtr != nil {
+			list = append(list, nodePtr)
+		}
+	}
+
+	return list, nil
+}
+
+// This function is here purely just to match the grammary.yy.
+func program(t_stream *TokenStream) (NodeListPtr, error) {
+	return itemList(t_stream)
 }
 
 // Source code to parse.
-func Parse(t_stream *TokenStream) (NodeList, error) {
+func Parse(t_stream *TokenStream) (NodeListPtr, error) {
 
 	return nil, nil
 }
