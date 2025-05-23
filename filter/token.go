@@ -1,12 +1,15 @@
 package filter
 
 import (
+	s "github.com/soerlemans/table/stream"
 	u "github.com/soerlemans/table/util"
 )
 
-type TokenType uint64
-type TokenVec []Token
+// TokenStream used later in parsing.
+type TokenStream s.SliceStream[Token]
 
+// TokenType specification.
+type TokenType uint64
 const (
 	IDENTIFIER TokenType = iota
 	NUMBER

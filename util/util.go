@@ -77,16 +77,20 @@ func Etc[W EtcWidthType](t_str string, t_count W) string {
 		etcLen = len(etc)
 	)
 
+	str := t_str
+
 	// Computer the maximum alllowed length and slice it.
 	// But only perform the slice if we go over the maxStrLen.
 	maxStrlen := int(t_count) - etcLen
 	sliced := t_str
 	if len(t_str) > maxStrlen {
 		sliced = t_str[:maxStrlen]
+
+		// Concat dots.
+		str = fmt.Sprintf("%s%s", sliced, etc)
 	}
 
-	// Concat and return.
-	return fmt.Sprintf("%s%s", sliced, etc)
+	return str
 }
 
 // Structs can get very long so summarize.

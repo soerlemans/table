@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"unicode"
 
+	s "github.com/soerlemans/table/stream"
 	u "github.com/soerlemans/table/util"
 )
 
@@ -76,7 +77,7 @@ func unterminated(t_preamble string, t_rn rune) error {
 // func TokenType2Str(t_type TokenType) String {
 // }
 
-func lexNumbers(t_stream *Stream) (Token, error) {
+func lexNumbers(t_stream *s.StringStream) (Token, error) {
 	var token Token
 	initialRn := t_stream.Current()
 
@@ -122,7 +123,7 @@ func checkKeyword(t_token *Token) {
 	}
 }
 
-func lexIdentifier(t_stream *Stream) (Token, error) {
+func lexIdentifier(t_stream *s.StringStream) (Token, error) {
 	var token Token
 	initialRn := t_stream.Current()
 
@@ -164,7 +165,7 @@ func lexIdentifier(t_stream *Stream) (Token, error) {
 
 }
 
-func lexString(t_stream *Stream) (Token, error) {
+func lexString(t_stream *s.StringStream) (Token, error) {
 	var token Token
 	initialRn := t_stream.Current()
 
@@ -234,7 +235,7 @@ func lexMultiSymbol(t_text *string) (Token, bool) {
 
 }
 
-func lexSymbol(t_stream *Stream) (Token, bool) {
+func lexSymbol(t_stream *s.StringStream) (Token, bool) {
 	var (
 		token       Token
 		foundSymbol bool // Defaults to false.
@@ -274,10 +275,10 @@ func Lex(t_text string) (TokenVec, error) {
 
 	u.Logf("ProgramText: %s", t_text)
 
-	runeStream := initStream(&t_text)
+	runeStream := s.InitStringStream(&t_text)
 
 	for !runeStream.Eos() {
-		rn := runeStream.Current()
+		rn := rune(runeStream.Current())
 
 		if unicode.IsSpace(rn) {
 			u.Logln("Skipping whitespace.")
