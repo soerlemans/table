@@ -8,17 +8,12 @@ type String struct {
 	Value string
 }
 
-type Number struct {
-	Value int64
-}
-
-// TODO: Probably move this to lvalue some day.
-type Identifier struct {
-	Name string
-}
-
 func InitString(t_value string) (String, error) {
 	return String{t_value}, nil
+}
+
+type Number struct {
+	Value int64
 }
 
 func InitNumber(t_value string) (Number, error) {
@@ -34,6 +29,11 @@ func InitNumber(t_value string) (Number, error) {
 	number = Number{integer}
 
 	return number, nil
+}
+
+// TODO: Probably move this to lvalue some day.
+type Identifier struct {
+	Name string
 }
 
 func InitIdentifier(t_value string) (Identifier, error) {

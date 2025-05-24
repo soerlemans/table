@@ -28,6 +28,69 @@ func logUnlessNil(t_preabmle string, t_node Node) {
 	}
 }
 
+func accessorName(t_stream *TokenStream) (Node, error) {
+	var node Node
+
+	return node, nil
+}
+
+func accessorPositional(t_stream *TokenStream) (Node, error) {
+	var node Node
+
+	return node, nil
+}
+
+func column(t_stream *TokenStream) (Node, error) {
+	var node Node
+
+	// Check for a name based column accessor.
+	if namePtr, err := accessorName(t_stream); node != nil {
+		node = namePtr
+	} else if err != nil {
+		return node, err
+
+	// Check for a positional based column accessor.
+	} else if posPtr, err := accessorPositional(t_stream); node != nil {
+		node = posPtr
+	} else if err != nil {
+		return node, err
+	}
+
+	return node, nil
+}
+
+func columnList(t_stream *TokenStream) (NodeList, error) {
+	var list NodeList
+
+	for {
+		node, err := column(t_stream)
+		if err != nil {
+			return list, err
+		}
+
+		// If the node is not nil we found an item.
+		if node != nil {
+			list = append(list, node)
+		} else {
+			break
+		}
+
+		// We must check for the intermediary pipe symbol '|'.
+		if !t_stream.Eos() {
+			token := t_stream.Current()
+
+			// If no intermediary pipe symbol was found we should quit.
+			// TODO: Or maybe error if we are not at EOS and find a Pipe.
+			if token.Type != COMMA {
+				break
+			}
+		}
+
+	}
+
+	return list, nil
+}
+
 // Ast:
 func keyword(t_stream *TokenStream) (Node, error) {
 	var node Node
@@ -212,11 +275,24 @@ func itemList(t_stream *TokenStream) (NodeList, error) {
 			return list, err
 		}
 
+		// If the node is not nil we found an item.
 		if node != nil {
 			list = append(list, node)
 		} else {
 			break
 		}
+
+		// We must check for the intermediary pipe symbol '|'.
+		if !t_stream.Eos() {
+			token := t_stream.Current()
+
+			// If no intermediary pipe symbol was found we should quit.
+			// TODO: Or maybe error if we are not at EOS and find a Pipe.
+			if token.Type != PIPE {
+				break
+			}
+		}
+
 	}
 
 	return list, nil

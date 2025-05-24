@@ -20,16 +20,16 @@
 
 %start program
 %%
-ascessor_name    : DOT IDENTIFIER
+accessor_name    : DOT IDENTIFIER
 								 | DOT STRING
 								 ;
 
-ascessor_positional : DOLLAR_SIGN IDENTIFIER
+accessor_positional : DOLLAR_SIGN IDENTIFIER
 								    | DOLLAR_SIGN NUMBER
 								    ;
 
-column           : ascessor_name
-								 | ascessor_positional
+column           : accessor_name
+								 | accessor_positional
                  ;
 
 column_list      : // empty
@@ -39,7 +39,7 @@ column_list      : // empty
 
 keyword          : WHEN expr
                  | MUT expr
-                 | OUT column_list
+                 | OUT STRING column_list
                  | MD column_list
                  | JSON column_list
                  ;
