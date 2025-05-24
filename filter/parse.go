@@ -15,27 +15,27 @@ var (
 )
 
 // Import these as we use them frequently.
-type NodeListPtr fn.NodeListPtr
-type NodePtr fn.NodePtr
+type NodeList fn.NodeList
+type Node fn.Node
 
 // TODO: Implement.
 func errExpectedToken() {}
 
-func keyword(t_stream *TokenStream) (NodePtr, error) {
-	var node NodePtr
+func keyword(t_stream *TokenStream) (Node, error) {
+	var node Node
 
 	return node, nil
 }
 
-func rvalue(t_stream *TokenStream) (NodePtr, error) {
-	var node NodePtr
+func rvalue(t_stream *TokenStream) (Node, error) {
+	var node Node
 
 	return node, nil
 }
 
 // Initialize the comparison.
-func initComparison[T fn.ComparisonType](t_stream *TokenStream, t_lhs NodePtr) (NodePtr, error) {
-	var node NodePtr
+func initComparison[T fn.ComparisonType](t_stream *TokenStream, t_lhs Node) (Node, error) {
+	var node Node
 
 	t_stream.Next()
 	if t_stream.Eos() {
@@ -58,8 +58,8 @@ func initComparison[T fn.ComparisonType](t_stream *TokenStream, t_lhs NodePtr) (
 	return node, nil
 }
 
-func expr(t_stream *TokenStream) (NodePtr, error) {
-	var node NodePtr
+func expr(t_stream *TokenStream) (Node, error) {
+	var node Node
 
 	lhs, err := rvalue(t_stream)
 	if err != nil {
@@ -98,8 +98,8 @@ func expr(t_stream *TokenStream) (NodePtr, error) {
 	return node, nil
 }
 
-func item(t_stream *TokenStream) (NodePtr, error) {
-	var node NodePtr
+func item(t_stream *TokenStream) (Node, error) {
+	var node Node
 
 	// Check for keywords.
 	if keywordPtr, err := keyword(t_stream); node != nil {
@@ -117,8 +117,8 @@ func item(t_stream *TokenStream) (NodePtr, error) {
 	return node, nil
 }
 
-func itemList(t_stream *TokenStream) (NodeListPtr, error) {
-	var list NodeListPtr
+func itemList(t_stream *TokenStream) (NodeList, error) {
+	var list NodeList
 
 	for {
 		node, err := item(t_stream)
@@ -137,12 +137,12 @@ func itemList(t_stream *TokenStream) (NodeListPtr, error) {
 }
 
 // This function is here purely just to match the grammary.yy.
-func program(t_stream *TokenStream) (NodeListPtr, error) {
+func program(t_stream *TokenStream) (NodeList, error) {
 	return itemList(t_stream)
 }
 
 // Source code to parse.
-func Parse(t_stream *TokenStream) (NodeListPtr, error) {
+func Parse(t_stream *TokenStream) (NodeList, error) {
 	list, err := program(t_stream)
 	if err != nil {
 		return list, err

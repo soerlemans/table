@@ -1,4 +1,4 @@
-package filter_node
+package ast
 
 type Pipe struct {
 }

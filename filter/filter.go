@@ -5,7 +5,7 @@ import (
 )
 
 type Filter struct {
-	Nodes NodeListPtr
+	Program NodeList
 }
 
 // This creates our kind of AST thingy.
