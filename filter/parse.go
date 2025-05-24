@@ -3,7 +3,7 @@ package filter
 import (
 	"errors"
 
-	fn "github.com/soerlemans/table/filter/filter_node"
+	a "github.com/soerlemans/table/filter/ast"
 	// u "github.com/soerlemans/table/util"
 )
 
@@ -15,8 +15,8 @@ var (
 )
 
 // Import these as we use them frequently.
-type NodeList fn.NodeList
-type Node fn.Node
+type NodeList a.NodeList
+type Node a.Node
 
 // TODO: Implement.
 func errExpectedToken() {}
@@ -34,7 +34,7 @@ func rvalue(t_stream *TokenStream) (Node, error) {
 }
 
 // Initialize the comparison.
-func initComparison[T fn.ComparisonType](t_stream *TokenStream, t_lhs Node) (Node, error) {
+func initComparison[T a.ComparisonType](t_stream *TokenStream, t_lhs Node) (Node, error) {
 	var node Node
 
 	t_stream.Next()
@@ -52,7 +52,7 @@ func initComparison[T fn.ComparisonType](t_stream *TokenStream, t_lhs Node) (Nod
 		return node, nil
 	}
 
-	comp := fn.InitComparison[T](t_lhs, rhs)
+	comp := a.InitComparison[T](t_lhs, rhs)
 	node = &comp
 
 	return node, nil
