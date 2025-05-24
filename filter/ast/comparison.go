@@ -4,22 +4,36 @@ type ComparisonType interface {
 	LessThan | LessThanEqual | Equal | NotEqual | GreaterThan | GreaterThanEqual
 }
 
-type LessThan struct{}
-type LessThanEqual struct{}
+type LessThan struct {
+	BinaryExpr
+}
 
-type Equal struct{}
-type NotEqual struct{}
+type LessThanEqual struct {
+	BinaryExpr
+}
 
-type GreaterThan struct{}
+type Equal struct {
+	BinaryExpr
+}
 
-// func (this *GreaterThan) eval() {}
+type NotEqual struct {
+	BinaryExpr
+}
 
-type GreaterThanEqual struct{}
+type GreaterThan struct {
+	BinaryExpr
+}
 
-// func (this *GreaterThanEqual) eval() {}
+type GreaterThanEqual struct {
+	BinaryExpr
+}
 
 func InitComparison[T ComparisonType](t_lhs Node, t_rhs Node) T {
 	var comp T
+
+	comp = T{
+		BinaryExpr: BinaryExpr{t_lhs, t_rhs},
+	}
 
 	return comp
 }

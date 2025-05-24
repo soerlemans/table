@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	a "github.com/soerlemans/table/filter/ast"
-	// u "github.com/soerlemans/table/util"
+	u "github.com/soerlemans/table/util"
 )
 
 // Errors:
@@ -21,6 +21,14 @@ type Node a.Node
 // TODO: Implement.
 func errExpectedToken() {}
 
+// Should be used in conjunction with defer.
+func logUnlessNil(t_preabmle string, t_node Node) {
+	if t_node != nil {
+		u.Logf("Found %s: %T", t_preabmle, t_node)
+	}
+}
+
+// Ast:
 func keyword(t_stream *TokenStream) (Node, error) {
 	var node Node
 
@@ -29,6 +37,47 @@ func keyword(t_stream *TokenStream) (Node, error) {
 
 func rvalue(t_stream *TokenStream) (Node, error) {
 	var node Node
+	defer func() { logUnlessNil("rvalue", node) }()
+
+	// Guard clause.
+	if t_stream.Eos() {
+		return node, nil
+	}
+
+	token := t_stream.Current()
+
+	// TODO: Refactor boilerplate later.
+	switch token.Type {
+	case NUMBER:
+		number, err := a.InitNumber(token.Value)
+		if err != nil {
+			return node, err
+		}
+
+		node = &number
+		t_stream.Next()
+		break
+
+	case STRING:
+		str, err := a.InitString(token.Value)
+		if err != nil {
+			return node, err
+		}
+
+		node = &str
+		t_stream.Next()
+		break
+
+	case IDENTIFIER:
+		id, err := a.InitIdentifier(token.Value)
+		if err != nil {
+			return node, err
+		}
+
+		node = &id
+		t_stream.Next()
+		break
+	}
 
 	return node, nil
 }
@@ -60,6 +109,7 @@ func initComparison[T a.ComparisonType](t_stream *TokenStream, t_lhs Node) (Node
 
 func expr(t_stream *TokenStream) (Node, error) {
 	var node Node
+	defer func() { logUnlessNil("expr", node) }()
 
 	lhs, err := rvalue(t_stream)
 	if err != nil {
@@ -73,24 +123,60 @@ func expr(t_stream *TokenStream) (Node, error) {
 
 		token := t_stream.Current()
 
+		// TODO: Cleanup boilerplate.
 		switch token.Type {
 		case LESS_THAN:
+			ltNode, err := initComparison[a.LessThan](t_stream, lhs)
+			if err != nil {
+				return node, err
+			}
 
+			node = &ltNode
 			break
 
 		case LESS_THAN_EQUAL:
+			lteNode, err := initComparison[a.LessThanEqual](t_stream, lhs)
+			if err != nil {
+				return node, err
+			}
+
+			node = &lteNode
 			break
 
 		case EQUAL:
+			eqNode, err := initComparison[a.Equal](t_stream, lhs)
+			if err != nil {
+				return node, err
+			}
+
+			node = &eqNode
 			break
 
 		case NOT_EQUAL:
+			neNode, err := initComparison[a.NotEqual](t_stream, lhs)
+			if err != nil {
+				return node, err
+			}
+
+			node = &neNode
 			break
 
 		case GREATER_THAN:
+			gtNode, err := initComparison[a.GreaterThan](t_stream, lhs)
+			if err != nil {
+				return node, err
+			}
+
+			node = &gtNode
 			break
 
 		case GREATER_THAN_EQUAL:
+			gteNode, err := initComparison[a.GreaterThanEqual](t_stream, lhs)
+			if err != nil {
+				return node, err
+			}
+
+			node = &gteNode
 			break
 		}
 	}
@@ -143,6 +229,9 @@ func program(t_stream *TokenStream) (NodeList, error) {
 
 // Source code to parse.
 func Parse(t_stream *TokenStream) (NodeList, error) {
+	u.Logf("BEGIN PARSING.")
+	defer u.Logf("END PARSING.")
+
 	list, err := program(t_stream)
 	if err != nil {
 		return list, err

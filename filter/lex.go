@@ -70,8 +70,7 @@ func incorrectStartingRune(t_preamble string, t_rn rune) error {
 }
 
 func unterminated(t_preamble string, t_rn rune) error {
-	return fmt.Errorf("unterminated %s expected '%c'(%w).", t_rn, ErrUnterminated)
-
+	return fmt.Errorf("unterminated %s expected '%c'(%w).", t_preamble, t_rn, ErrUnterminated)
 }
 
 // func TokenType2Str(t_type TokenType) String {
@@ -103,7 +102,7 @@ func lexNumbers(t_stream *s.StringStream) (Token, error) {
 			}
 		}
 
-		token = InitToken(STRING, value)
+		token = InitToken(NUMBER, value)
 	} else {
 		err := incorrectStartingRune("numbers", initialRn)
 
@@ -245,24 +244,27 @@ func lexSymbol(t_stream *s.StringStream) (Token, bool) {
 	rn := t_stream.Current()
 	buf := string(rn)
 	token, foundSymbol = lexSingleSymbol(&buf)
-	if foundSymbol {
-		t_stream.Next()
-	}
 
 	// Handle potential multi rune symbols.
 	if !t_stream.Eos() {
-		rn := t_stream.Current()
+		rn, ok := t_stream.Peek()
+		if ok {
+			buf += string(rn)
+			tokenMulti, foundMultiSymbol := lexMultiSymbol(&buf)
 
-		buf += string(rn)
-		tokenMulti, foundMultiSymbol := lexMultiSymbol(&buf)
+			if foundMultiSymbol {
+				token = tokenMulti
+				foundSymbol = foundMultiSymbol
 
-		if foundMultiSymbol {
-			token = tokenMulti
-			foundSymbol = foundMultiSymbol
-
-			// Skip to the next char.
-			t_stream.Next()
+				// Skip to the next char.
+				t_stream.Next()
+			}
 		}
+	}
+
+	if foundSymbol {
+		// Skip another character either way.
+		t_stream.Next()
 	}
 
 	return token, foundSymbol
