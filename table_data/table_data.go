@@ -21,6 +21,8 @@ const (
 	EXCEL
 )
 
+type TableDataRow = []string
+
 // Internal representation of the table.
 type TableData struct {
 	// Map strings to indexes.
@@ -31,7 +33,7 @@ type TableData struct {
 
 	// TODO: See if this plays out or if we want to use []string.
 	// And do the field separation on the fly.
-	RowsData [][]string
+	RowsData []TableDataRow
 }
 
 // Return the amount of rows.
