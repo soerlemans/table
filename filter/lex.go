@@ -150,7 +150,7 @@ func lexIdentifier(t_stream *s.StringStream) (Token, error) {
 
 		}
 
-		token = InitToken(STRING, value)
+		token = InitToken(IDENTIFIER, value)
 	} else {
 		err := incorrectStartingRune("identifiers", initialRn)
 

@@ -77,9 +77,9 @@ func (t TokenType) String() string {
 	case FUNCTION_CALL:
 		return "FunctionCall"
 	case ACCESSOR_NAME:
-		return "AccessorName"
+		return "."
 	case ACCESSOR_POSITIONAL:
-		return "AccessorPositional"
+		return "$"
 	case COMMA:
 		return ","
 	case PIPE:

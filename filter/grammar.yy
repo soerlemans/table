@@ -32,10 +32,6 @@ column           : accessor_name
 								 | accessor_positional
                  ;
 
-column_list      : // empty
-                 | column_list COMMA column
-                 | column
-
 parameter        : rvalue
                  ;
 
