@@ -18,6 +18,9 @@ var (
 type NodeList a.NodeList
 type Node a.Node
 
+type parseFnNode = func(*TokenStream) (Node, error)
+type parseFnNodeList = func(*TokenStream) (NodeList, error)
+
 // TODO: Implement.
 func errExpectedToken() {}
 
@@ -28,9 +31,7 @@ func logUnlessNil(t_preabmle string, t_node Node) {
 	}
 }
 
-type parseFn = func(*TokenStream) (Node, error)
-
-func parseList(t_stream *TokenStream, t_fn parseFn, t_sep TokenType) (NodeList, error) {
+func parseList(t_stream *TokenStream, t_fn parseFnNode, t_sep TokenType) (NodeList, error) {
 	var list NodeList
 
 	for {
