@@ -5,10 +5,10 @@ import (
 )
 
 type Filter struct {
-	Nodes NodeListPtr
+	Program NodeList
 }
 
-// This creates our kind of AST thingy.
+// This constructs the AST.
 func InitFilter(t_text string) (Filter, error) {
 	var filter_ Filter
 	defer func() { u.LogStructName("initFilter", filter_, u.ETC80) }()

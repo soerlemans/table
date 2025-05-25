@@ -66,12 +66,11 @@ var (
 )
 
 func incorrectStartingRune(t_preamble string, t_rn rune) error {
-	return fmt.Errorf("%s do not start with '%c'(%w).", t_preamble, t_rn, ErrIncorrectStartingRune)
+	return fmt.Errorf("%s do not start with '%c' (%w).", t_preamble, t_rn, ErrIncorrectStartingRune)
 }
 
 func unterminated(t_preamble string, t_rn rune) error {
-	return fmt.Errorf("unterminated %s expected '%c'(%w).", t_rn, ErrUnterminated)
-
+	return fmt.Errorf("unterminated %s expected '%c' (%w).", t_preamble, t_rn, ErrUnterminated)
 }
 
 // func TokenType2Str(t_type TokenType) String {
@@ -103,7 +102,7 @@ func lexNumbers(t_stream *s.StringStream) (Token, error) {
 			}
 		}
 
-		token = InitToken(STRING, value)
+		token = InitToken(NUMBER, value)
 	} else {
 		err := incorrectStartingRune("numbers", initialRn)
 
@@ -148,10 +147,9 @@ func lexIdentifier(t_stream *s.StringStream) (Token, error) {
 				// If we run out of alphanumerics its fine.
 				break
 			}
-
 		}
 
-		token = InitToken(STRING, value)
+		token = InitToken(IDENTIFIER, value)
 	} else {
 		err := incorrectStartingRune("identifiers", initialRn)
 
@@ -187,6 +185,9 @@ func lexString(t_stream *s.StringStream) (Token, error) {
 			if rn != DOUBLE_QUOTE_RN {
 				value += string(rn)
 			} else {
+				// Pass by the double quote rune.
+				t_stream.Next()
+
 				// Double quote so end of string.
 				break
 			}
@@ -194,9 +195,7 @@ func lexString(t_stream *s.StringStream) (Token, error) {
 
 		token = InitToken(STRING, value)
 	} else {
-		err := incorrectStartingRune("strings", initialRn)
-
-		return token, err
+		return token, incorrectStartingRune("strings", initialRn)
 	}
 
 	return token, nil
@@ -245,24 +244,27 @@ func lexSymbol(t_stream *s.StringStream) (Token, bool) {
 	rn := t_stream.Current()
 	buf := string(rn)
 	token, foundSymbol = lexSingleSymbol(&buf)
-	if foundSymbol {
-		t_stream.Next()
-	}
 
 	// Handle potential multi rune symbols.
 	if !t_stream.Eos() {
-		rn := t_stream.Current()
+		rn, ok := t_stream.Peek()
+		if ok {
+			buf += string(rn)
+			tokenMulti, foundMultiSymbol := lexMultiSymbol(&buf)
 
-		buf += string(rn)
-		tokenMulti, foundMultiSymbol := lexMultiSymbol(&buf)
+			if foundMultiSymbol {
+				token = tokenMulti
+				foundSymbol = foundMultiSymbol
 
-		if foundMultiSymbol {
-			token = tokenMulti
-			foundSymbol = foundMultiSymbol
-
-			// Skip to the next char.
-			t_stream.Next()
+				// Skip to the next char.
+				t_stream.Next()
+			}
 		}
+	}
+
+	if foundSymbol {
+		// Skip another character either way.
+		t_stream.Next()
 	}
 
 	return token, foundSymbol
@@ -271,7 +273,7 @@ func lexSymbol(t_stream *s.StringStream) (Token, bool) {
 // Lex the program text and return a TokenVec.
 func Lex(t_text string) (TokenStream, error) {
 	var tokenStream TokenStream
-	defer func() { u.Logf("tokenStream: %v", tokenStream) }()
+	defer func() { u.Logf("tokenStream: %v", tokenStream.View) }()
 
 	u.Logf("ProgramText: %s", t_text)
 
@@ -310,7 +312,7 @@ func Lex(t_text string) (TokenStream, error) {
 		} else {
 			token, found := lexSymbol(&runeStream)
 
-			// Error handle unhandled tokens:
+			// Error handle, unhandled tokens:
 			if !found {
 				u.Logf("Unhandled rune: %c", rn)
 

@@ -6,10 +6,11 @@ import (
 )
 
 // TokenStream used later in parsing.
-type TokenStream s.SliceStream[Token]
+type TokenStream = s.SliceStream[Token]
 
 // TokenType specification.
 type TokenType uint64
+
 const (
 	IDENTIFIER TokenType = iota
 	NUMBER
@@ -64,6 +65,58 @@ const (
 	// This operation will export the surviving rows to JSON.
 	JSON
 )
+
+func (t TokenType) String() string {
+	switch t {
+	case IDENTIFIER:
+		return "Identifier"
+	case NUMBER:
+		return "Number"
+	case STRING:
+		return "String"
+	case FUNCTION_CALL:
+		return "FunctionCall"
+	case ACCESSOR_NAME:
+		return "."
+	case ACCESSOR_POSITIONAL:
+		return "$"
+	case COMMA:
+		return ","
+	case PIPE:
+		return "|"
+	case LESS_THAN:
+		return "<"
+	case LESS_THAN_EQUAL:
+		return "<="
+	case EQUAL:
+		return "=="
+	case NOT_EQUAL:
+		return "!="
+	case GREATER_THAN:
+		return ">"
+	case GREATER_THAN_EQUAL:
+		return ">="
+	case NOT:
+		return "!"
+	case AND:
+		return "&&"
+	case OR:
+		return "||"
+	case WHEN:
+		return "when"
+	case MUT:
+		return "mut"
+	case OUT:
+		return "out"
+	case MD:
+		return "md"
+	case JSON:
+		return "json"
+	}
+
+	// Optionally return an error?
+	return "Unknown TokenType"
+}
 
 // TODO: Document.
 type Token struct {
