@@ -44,11 +44,16 @@ parameter_list   : // empty
                  | parameter
                  ;
 
+keyword_ out     : OUT
+                 | OUT STRING
+                 | OUT STRING COMMA parameter_list
+                 ;
+
 keyword          : WHEN expr
                  | MUT expr
-                 | OUT STRING column_list
-                 | MD column_list
-                 | JSON column_list
+                 | keyword_out
+                 | MD parameter_list
+                 | JSON parameter_list
                  ;
 
 rvalue           : IDENTIFIER
