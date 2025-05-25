@@ -66,11 +66,11 @@ var (
 )
 
 func incorrectStartingRune(t_preamble string, t_rn rune) error {
-	return fmt.Errorf("%s do not start with '%c'(%w).", t_preamble, t_rn, ErrIncorrectStartingRune)
+	return fmt.Errorf("%s do not start with '%c' (%w).", t_preamble, t_rn, ErrIncorrectStartingRune)
 }
 
 func unterminated(t_preamble string, t_rn rune) error {
-	return fmt.Errorf("unterminated %s expected '%c'(%w).", t_preamble, t_rn, ErrUnterminated)
+	return fmt.Errorf("unterminated %s expected '%c' (%w).", t_preamble, t_rn, ErrUnterminated)
 }
 
 // func TokenType2Str(t_type TokenType) String {
@@ -147,7 +147,6 @@ func lexIdentifier(t_stream *s.StringStream) (Token, error) {
 				// If we run out of alphanumerics its fine.
 				break
 			}
-
 		}
 
 		token = InitToken(IDENTIFIER, value)
@@ -186,6 +185,9 @@ func lexString(t_stream *s.StringStream) (Token, error) {
 			if rn != DOUBLE_QUOTE_RN {
 				value += string(rn)
 			} else {
+				// Pass by the double quote rune.
+				t_stream.Next()
+
 				// Double quote so end of string.
 				break
 			}
@@ -193,9 +195,7 @@ func lexString(t_stream *s.StringStream) (Token, error) {
 
 		token = InitToken(STRING, value)
 	} else {
-		err := incorrectStartingRune("strings", initialRn)
-
-		return token, err
+		return token, incorrectStartingRune("strings", initialRn)
 	}
 
 	return token, nil

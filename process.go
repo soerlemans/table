@@ -40,7 +40,11 @@ func Process(t_ctx ProcessContext) []string {
 	// Can then be executed like an AST.
 	// Just create a single data type for processing.
 	// something like a Table structure, consisting of columns, rows, etc.
-	f.InitFilter(t_ctx.ProgramText)
+	_, err := f.InitFilter(t_ctx.ProgramText)
+	if err != nil {
+		u.Println("Error:", err)
+		return nil
+	}
 
 	rows := t_ctx.Table.RowsData
 	for i, line := range rows {
