@@ -28,6 +28,40 @@ func logUnlessNil(t_preabmle string, t_node Node) {
 	}
 }
 
+type parseFn = func(*TokenStream) (Node, error)
+
+func parseList(t_stream *TokenStream, t_fn parseFn, t_sep TokenType) (NodeList, error) {
+	var list NodeList
+
+	for {
+		node, err := t_fn(t_stream)
+		if err != nil {
+			return list, err
+		}
+
+		// If the node is not nil we found an item.
+		if node != nil {
+			list = append(list, node)
+		} else {
+			break
+		}
+
+		// We must check for any separator symbols.
+		if !t_stream.Eos() {
+			token := t_stream.Current()
+
+			// If no intermediary pipe symbol was found we should quit.
+			if token.Type != t_sep {
+				break
+			}
+		}
+
+	}
+
+	return list, nil
+}
+
+// Parsing functions:
 func accessorName(t_stream *TokenStream) (Node, error) {
 	var node Node
 
@@ -49,7 +83,7 @@ func column(t_stream *TokenStream) (Node, error) {
 	} else if err != nil {
 		return node, err
 
-	// Check for a positional based column accessor.
+		// Check for a positional based column accessor.
 	} else if posPtr, err := accessorPositional(t_stream); node != nil {
 		node = posPtr
 	} else if err != nil {
@@ -60,35 +94,30 @@ func column(t_stream *TokenStream) (Node, error) {
 }
 
 func columnList(t_stream *TokenStream) (NodeList, error) {
-	var list NodeList
+	return parseList(t_stream, column, COMMA)
+}
 
-	for {
-		node, err := column(t_stream)
-		if err != nil {
-			return list, err
-		}
+func parameter(t_stream *TokenStream) (Node, error) {
+	var node Node
 
-		// If the node is not nil we found an item.
-		if node != nil {
-			list = append(list, node)
-		} else {
-			break
-		}
+	// Check for a name based column accessor.
+	if namePtr, err := accessorName(t_stream); node != nil {
+		node = namePtr
+	} else if err != nil {
+		return node, err
 
-		// We must check for the intermediary pipe symbol '|'.
-		if !t_stream.Eos() {
-			token := t_stream.Current()
-
-			// If no intermediary pipe symbol was found we should quit.
-			// TODO: Or maybe error if we are not at EOS and find a Pipe.
-			if token.Type != COMMA {
-				break
-			}
-		}
-
+		// Check for a positional based column accessor.
+	} else if posPtr, err := accessorPositional(t_stream); node != nil {
+		node = posPtr
+	} else if err != nil {
+		return node, err
 	}
 
-	return list, nil
+	return node, nil
+}
+
+func parameterList(t_stream *TokenStream) (NodeList, error) {
+	return parseList(t_stream, parameter, COMMA)
 }
 
 // Ast:
@@ -182,6 +211,7 @@ func expr(t_stream *TokenStream) (Node, error) {
 	if lhs != nil {
 		if t_stream.Eos() {
 			// TODO: Throw error.
+			// Currently Lvalues always expect a next char.
 		}
 
 		token := t_stream.Current()
@@ -267,35 +297,7 @@ func item(t_stream *TokenStream) (Node, error) {
 }
 
 func itemList(t_stream *TokenStream) (NodeList, error) {
-	var list NodeList
-
-	for {
-		node, err := item(t_stream)
-		if err != nil {
-			return list, err
-		}
-
-		// If the node is not nil we found an item.
-		if node != nil {
-			list = append(list, node)
-		} else {
-			break
-		}
-
-		// We must check for the intermediary pipe symbol '|'.
-		if !t_stream.Eos() {
-			token := t_stream.Current()
-
-			// If no intermediary pipe symbol was found we should quit.
-			// TODO: Or maybe error if we are not at EOS and find a Pipe.
-			if token.Type != PIPE {
-				break
-			}
-		}
-
-	}
-
-	return list, nil
+	return parseList(t_stream, item, PIPE)
 }
 
 // This function is here purely just to match the grammary.yy.

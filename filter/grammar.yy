@@ -35,6 +35,13 @@ column           : accessor_name
 column_list      : // empty
                  | column_list COMMA column
                  | column
+
+parameter        : rvalue
+                 ;
+
+parameter_list   : // empty
+                 | parameter_list COMMA parameter
+                 | parameter
                  ;
 
 keyword          : WHEN expr
