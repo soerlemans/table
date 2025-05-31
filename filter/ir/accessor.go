@@ -1,4 +1,4 @@
-package ast
+package ir
 
 // Access a cell by the name of the column.
 type AccessorName struct {

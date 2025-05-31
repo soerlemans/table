@@ -1,4 +1,4 @@
-package ast
+package ir
 
 type When struct{}
 type Mut struct{}

@@ -1,4 +1,4 @@
-package ast
+package ir
 
 type ComparisonType interface {
 	LessThan | LessThanEqual | Equal | NotEqual | GreaterThan | GreaterThanEqual
