@@ -238,6 +238,74 @@ func parameterList(t_stream *TokenStream) (ValueListPtr, error) {
 // Ast:
 func keyword(t_stream *TokenStream) (InstPtr, error) {
 	var inst InstPtr
+	defer func() { logUnlessNil("keyword", inst) }()
+
+	// Guard clause.
+	if t_stream.Eos() {
+		return inst, nil
+	}
+
+	token := t_stream.Current()
+	switch token.Type {
+	case WHEN:
+		list, err := parameterList(t_stream)
+		if err != nil {
+			return inst, err
+		}
+
+		when := ir.InitInstructionByList(ir.WhenBlock, *list)
+
+		inst = &when
+		break
+
+	case MUT:
+		list, err := parameterList(t_stream)
+		if err != nil {
+			return inst, err
+		}
+
+		mut := ir.InitInstructionByList(ir.MutBlock, *list)
+
+		inst = &mut
+		break
+
+	case OUT:
+		list, err := parameterList(t_stream)
+		if err != nil {
+			return inst, err
+		}
+
+		out := ir.InitInstructionByList(ir.OutBlock, *list)
+
+		inst = &out
+		break
+
+	case MD:
+		list, err := parameterList(t_stream)
+		if err != nil {
+			return inst, err
+		}
+
+		md := ir.InitInstructionByList(ir.MdBlock, *list)
+
+		inst = &md
+		break
+
+	case JSON:
+		list, err := parameterList(t_stream)
+		if err != nil {
+			return inst, err
+		}
+
+		json := ir.InitInstructionByList(ir.JsonBlock, *list)
+
+		inst = &json
+		break
+
+	default:
+		// No error this is fine, just not a keyword.
+		break
+	}
 
 	return inst, nil
 }
