@@ -62,7 +62,8 @@ func validPtr[T any](t_ptr *T, t_err error) bool {
 
 // TODO: Refactor two instances of parseLists.
 func parseList(t_stream *TokenStream, t_fn parseFnInst, t_sep TokenType) (InstListPtr, error) {
-	var list InstListPtr
+	var list InstListPtr = new(ir.InstructionList)
+	defer func() { logUnlessNil("parseList", list) }()
 
 	for {
 		inst, err := t_fn(t_stream)
@@ -93,7 +94,7 @@ func parseList(t_stream *TokenStream, t_fn parseFnInst, t_sep TokenType) (InstLi
 }
 
 func parseValueList(t_stream *TokenStream, t_fn parseFnValue, t_sep TokenType) (ValueListPtr, error) {
-	var list ValueListPtr
+	var list ValueListPtr = new(ir.ValueList)
 
 	for {
 		inst, err := t_fn(t_stream)
@@ -462,6 +463,7 @@ func expr(t_stream *TokenStream) (InstPtr, error) {
 
 func item(t_stream *TokenStream) (InstPtr, error) {
 	var inst InstPtr
+	defer func() { logUnlessNil("item", inst) }()
 
 	// Check for keywords.
 	if keywordPtr, err := keyword(t_stream); validPtr(keywordPtr, err) {
