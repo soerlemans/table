@@ -39,12 +39,14 @@ func Process(t_ctx ProcessContext) []string {
 	// something like a Table structure, consisting of columns, rows, etc.
 
 	rows := t_ctx.Table.RowsData
-	for index, line := range rows {
+	for index, _ := range rows {
 		filter := t_ctx.Filter
 		tablePtr := &t_ctx.Table
 
+		// Execute filters on the current row index.
 		filter.Exec(index, tablePtr)
-		u.Printf("line(%d:%d): %s", index, t_ctx.Id, line)
+
+		// u.Printf("line(%d:%d): %s", index, t_ctx.Id, line)
 	}
 
 	return nil

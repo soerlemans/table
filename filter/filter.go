@@ -1,7 +1,7 @@
 package filter
 
 import (
-	"github.com/soerlemans/filter/ir"
+	"github.com/soerlemans/table/filter/ir"
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
 )

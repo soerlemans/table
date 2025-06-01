@@ -76,6 +76,29 @@ func (this *TableData) CellByColName(t_row int, t_name string) (string, error) {
 	return this.CellByIndices(t_row, t_col)
 }
 
+func (this *TableData) RowAsStr(t_row int) (string, error) {
+	var row string
+	defer func() { u.Logf("Row2Str: %s.", u.Quote(row)) }()
+
+	if t_row < this.RowLength() {
+		rowArray := this.RowsData[t_row]
+
+		// Append to the line string, for each cell.
+		var sep string
+		for _, cell := range rowArray {
+			row += fmt.Sprintf("%s%s", sep, cell)
+
+			sep = ", "
+		}
+
+	} else {
+		err := u.Errorf("Row index is out of bounds (%d).", t_row)
+		return row, err
+	}
+
+	return row, nil
+}
+
 // Convert a matrix of strings into a TableData struct.
 func matrix2TableData(t_matrix [][]string) TableData {
 	var table TableData
