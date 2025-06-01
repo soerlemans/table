@@ -36,6 +36,10 @@ type TableData struct {
 	RowsData []TableDataRow
 }
 
+func (this *TableData) HeaderLength() int {
+	return len(this.Headers)
+}
+
 // Return the amount of rows.
 func (this *TableData) RowLength() int {
 	return len(this.RowsData)
