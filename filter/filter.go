@@ -1,11 +1,19 @@
 package filter
 
 import (
+	"github.com/soerlemans/table/filter/ir"
+	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
 )
 
 type Filter struct {
-	Program NodeList
+	Instructions InstListPtr
+}
+
+func (this *Filter) Exec(t_index int, t_table *td.TableData) {
+	instructions := *(this.Instructions)
+
+	ir.ExecIr(instructions, t_index, t_table)
 }
 
 // This constructs the AST.

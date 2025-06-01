@@ -11,21 +11,18 @@ type ProcessContext struct {
 	// Identifier.
 	Id uint64
 
-	// The query to perform.
-	ProgramText string
+	// Pointer to filters
+	Filter *f.Filter
 
 	// Internal table representation.
 	Table td.TableData
-
-	// Raw input in row format.
-	// Input []string
 }
 
 // Gives a unique id for every Processcontext.
 var idCounter uint64
 
-func initProcessContext(t_text string, t_table td.TableData) ProcessContext {
-	ctx := ProcessContext{idCounter, t_text, t_table}
+func initProcessContext(t_filter *f.Filter, t_table td.TableData) ProcessContext {
+	ctx := ProcessContext{idCounter, t_filter, t_table}
 	defer func() { u.LogStructName("initContext", ctx, u.ETC80) }()
 
 	// Increment id counter.
@@ -35,20 +32,21 @@ func initProcessContext(t_text string, t_table td.TableData) ProcessContext {
 }
 
 func Process(t_ctx ProcessContext) []string {
-	// Parse filtering code to create a Pipe like data sctructure.
+	// Parse filtering code to create a Pipe like data structure.
 	// Some kind of decorator structure which.
 	// Can then be executed like an AST.
 	// Just create a single data type for processing.
 	// something like a Table structure, consisting of columns, rows, etc.
-	_, err := f.InitFilter(t_ctx.ProgramText)
-	if err != nil {
-		u.Println("Error:", err)
-		return nil
-	}
 
 	rows := t_ctx.Table.RowsData
-	for i, line := range rows {
-		u.Printf("line(%d:%d): %s", i, t_ctx.Id, line)
+	for index, _ := range rows {
+		filter := t_ctx.Filter
+		tablePtr := &t_ctx.Table
+
+		// Execute filters on the current row index.
+		filter.Exec(index, tablePtr)
+
+		// u.Printf("line(%d:%d): %s", index, t_ctx.Id, line)
 	}
 
 	return nil

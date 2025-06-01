@@ -3,7 +3,8 @@ package main
 import (
 	"sync"
 
-	"github.com/soerlemans/table/util"
+	f "github.com/soerlemans/table/filter"
+	u "github.com/soerlemans/table/util"
 )
 
 const (
@@ -18,6 +19,11 @@ func run(t_args Arguments) error {
 		return err
 	}
 
+	filter, err := f.InitFilter(t_args.ProgramText)
+	if err != nil {
+		return err
+	}
+
 	var wg sync.WaitGroup
 	// TODO: Use taskCounter to decide on a max taskcount.
 	// var taskCounter uint64 = 0
@@ -25,10 +31,8 @@ func run(t_args Arguments) error {
 	for _, table := range tables {
 		// Use a lambda to capture localized variables.
 		task := func() {
-			text := t_args.ProgramText
-
 			// Create the context for the task to run.
-			ctx := initProcessContext(text, table)
+			ctx := initProcessContext(&filter, table)
 
 			// Start processing.
 			Process(ctx)
@@ -51,8 +55,8 @@ func run(t_args Arguments) error {
 
 func main() {
 	args, err := initArgs()
-	util.FailIf(err)
+	u.FailIf(err)
 
 	err = run(args)
-	util.FailIf(err)
+	u.FailIf(err)
 }
