@@ -8,6 +8,20 @@ import (
 	u "github.com/soerlemans/table/util"
 )
 
+// Convert to normal int (watch out with integer slicing).
+func toInt(t_str string) (int, error) {
+	var result int
+
+	integer, err := strconv.ParseInt(t_str, 10, 64)
+	if err != nil {
+		return result, err
+	}
+
+	result = int(integer)
+
+	return result, nil
+}
+
 var variableStore map[string]string
 
 func resolveValue(t_value Value, t_index int, t_table *td.TableData) (string, error) {
@@ -46,13 +60,10 @@ func resolveValue(t_value Value, t_index int, t_table *td.TableData) (string, er
 		break
 
 	case FieldByPosition:
-		integer, err := strconv.ParseInt(t_value.Value, 10, 64)
+		colIndex, err := toInt(t_value.Value)
 		if err != nil {
 			return value, err
 		}
-
-		// Convert to normal int (watch out with integer slicing).
-		colIndex := int(integer)
 
 		// Handle negative indices, to count from the end.
 		if colIndex < 0 {
@@ -87,7 +98,16 @@ func ExecIr(instructions InstructionList, t_index int, t_table *td.TableData) er
 		return err
 	}
 
+	// Extract required global vars.
+	rowLength := t_table.RowLength()
+	headerLength := t_table.HeaderLength()
+
 	// Set global variables for each execution.
+	// These are similar to AWK.
+	variableStore["FNR"] = fmt.Sprintf("%d", t_index)
+	variableStore["NR"] = fmt.Sprintf("%d", rowLength)
+
+	variableStore["HR"] = fmt.Sprintf("%d", headerLength)
 
 	skip := false
 	for _, inst := range instructions {
@@ -96,18 +116,18 @@ func ExecIr(instructions InstructionList, t_index int, t_table *td.TableData) er
 			lhs := inst.Operands[0]
 			rhs := inst.Operands[1]
 
-			valueLhs, err := resolveValue(lhs, t_index, t_table)
+			resLhs, err := resolveValue(lhs, t_index, t_table)
 			if err != nil {
 				return err
 			}
 
-			valueRhs, err := resolveValue(rhs, t_index, t_table)
+			ResRhs, err := resolveValue(rhs, t_index, t_table)
 			if err != nil {
 				return err
 			}
 
-			// If not equal skip the line.
-			if valueLhs != valueRhs {
+			// If not equal skip the line (note we compare as strings).
+			if resLhs != ResRhs {
 				skip = true
 			}
 			break
