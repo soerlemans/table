@@ -35,17 +35,18 @@ var singleRuneSymbols = map[string]TokenType{
 	string(DOLLAR_SIGN_RN): ACCESSOR_POSITIONAL,
 	string(COMMA_RN):       COMMA,
 	string(PIPE_RN):        PIPE,
+
+	LESS_THAN_STR:       LESS_THAN,
+	GREATER_THAN_STR:       GREATER_THAN,
 }
 
 // Multi rune symbols mapped to TokenType.
 var multiRuneSymbols = map[string]TokenType{
-	LESS_THAN_STR:       LESS_THAN,
 	LESS_THAN_EQUAL_STR: LESS_THAN_EQUAL,
 
 	EQUAL_STR:     EQUAL,
 	NOT_EQUAL_STR: NOT_EQUAL,
 
-	GREATER_THAN_STR:       GREATER_THAN,
 	GREATER_THAN_EQUAL_STR: GREATER_THAN_EQUAL,
 }
 
