@@ -5,7 +5,7 @@ import (
 )
 
 type Filter struct {
-	Program NodeList
+	Instructions InstListPtr
 }
 
 // This constructs the AST.

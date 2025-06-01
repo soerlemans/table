@@ -1,16 +1,20 @@
 package ir
 
-// TODO: xxx
+import (
+	"fmt"
+)
 
 // Convenience alias.
 type InstructionList = []Instruction
+type ValueList = []Value
 
 type InstructionType int
 
 const (
-	InstructionType = iota
+	xxx InstructionType = iota
 
 	LoadVariable
+	StoreVariable
 	LoadField
 
 	LessThan
@@ -30,17 +34,41 @@ const (
 type ValueType int
 
 const (
-	String ValueType = iota,
-	Number,
+	Identifier ValueType = iota
+
+	String
+	Number
+
+	FieldByName
+	FieldByPosition
 )
 
-// Interface for interacting with filter nodes.
-type Instruction interface {
-	//	eval()
-	//	print()
+type Value struct {
+	Type  ValueType
+	Value string
 }
 
-type BinaryExpr struct {
-	lhs Node
-	rhs Node
+// TODO:
+type Instruction struct {
+	Id       string
+	Type     InstructionType
+	Operands ValueList
+}
+
+// Initialization:
+func InitValue(t_type ValueType, t_value string) Value {
+	return Value{t_type, t_value}
+}
+
+func InitInstruction(t_type InstructionType, t_operands ...Value) Instruction {
+	return InitInstructionByList(t_type, t_operands)
+}
+
+var labelCount int
+
+func InitInstructionByList(t_type InstructionType, t_operands ValueList) Instruction {
+	label := fmt.Sprintf("%i%d", labelCount)
+	labelCount++
+
+	return Instruction{label, t_type, t_operands}
 }

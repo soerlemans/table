@@ -3,30 +3,36 @@ package filter
 import (
 	"errors"
 	"fmt"
-	"strconv"
+	// "strconv"
 
-	a "github.com/soerlemans/table/filter/ast"
+	"github.com/soerlemans/table/filter/ir"
 	u "github.com/soerlemans/table/util"
 )
 
 // Errors:
 var (
-	ErrNodeEmpty     = errors.New("Expected a node")
-	ErrUnexpectedEos = errors.New("Unexpected end of stream")
-	ErrExpected      = errors.New("Expected")
-	ErrUnsupported   = errors.New("Unsupported")
+	ErrInstructionEmpty = errors.New("Expected an instruction")
+	ErrUnexpectedEos    = errors.New("Unexpected end of stream")
+	ErrExpected         = errors.New("Expected")
+	ErrUnsupported      = errors.New("Unsupported")
 )
 
 // Import these as we use them frequently.
-type NodeList a.NodeList
-type Node a.Node
+type InstPtr *ir.Instruction
+type InstListPtr *ir.InstructionList
 
-type parseFnNode = func(*TokenStream) (Node, error)
-type parseFnNodeList = func(*TokenStream) (NodeList, error)
+type parseFnInst = func(*TokenStream) (InstPtr, error)
+type parseFnInstList = func(*TokenStream) (InstListPtr, error)
+
+type ValuePtr *ir.Value
+type ValueListPtr *ir.ValueList
+
+type parseFnValue = func(*TokenStream) (ValuePtr, error)
+type parseFnValueList = func(*TokenStream) (ValueListPtr, error)
 
 // TODO: Implement.
-func errNodeEmpty(t_location string) error {
-	return fmt.Errorf("Expected node returned nil in %s (%w)", t_location, ErrNodeEmpty)
+func errInstructionEmpty(t_location string) error {
+	return fmt.Errorf("Expected Instruction returned nil in %s (%w)", t_location, ErrInstructionEmpty)
 }
 
 func errExpectedString(t_location string, t_string string) error {
@@ -42,30 +48,62 @@ func errUnexpectedEos(t_location string) error {
 }
 
 // Should be used in conjunction with defer.
-func logUnlessNil(t_preabmle string, t_node Node) {
-	if t_node != nil {
-		u.Logf("Found %s: %T", t_preabmle, t_node)
+func logUnlessNil[T any](t_preabmle string, t_ptr *T) {
+	if t_ptr != nil {
+		u.Logf("Found %s: %T", t_preabmle, *t_ptr)
 	}
 }
 
-// Check if a node is initialized if the node is not nil.
+// Check if a Inst is initialized if the Inst is not nil.
 // And no error is set.
-func validNode(t_node Node, t_err error) bool {
-	return t_node != nil && t_err == nil
+func validPtr[T any](t_ptr *T, t_err error) bool {
+	return t_ptr != nil && t_err == nil
 }
 
-func parseList(t_stream *TokenStream, t_fn parseFnNode, t_sep TokenType) (NodeList, error) {
-	var list NodeList
+// TODO: Refactor two instances of parseLists.
+func parseList(t_stream *TokenStream, t_fn parseFnInst, t_sep TokenType) (InstListPtr, error) {
+	var list InstListPtr
 
 	for {
-		node, err := t_fn(t_stream)
+		inst, err := t_fn(t_stream)
 		if err != nil {
 			return list, err
 		}
 
-		// If the node is not nil we found an item.
-		if node != nil {
-			list = append(list, node)
+		// If the inst is not nil we found an item.
+		if inst != nil {
+			*list = append(*list, *inst)
+		} else {
+			break
+		}
+
+		// We must check for any separator symbols.
+		if !t_stream.Eos() {
+			token := t_stream.Current()
+
+			// If no intermediary pipe symbol was found we should quit.
+			if token.Type != t_sep {
+				break
+			}
+		}
+
+	}
+
+	return list, nil
+}
+
+func parseValueList(t_stream *TokenStream, t_fn parseFnValue, t_sep TokenType) (ValueListPtr, error) {
+	var list ValueListPtr
+
+	for {
+		inst, err := t_fn(t_stream)
+		if err != nil {
+			return list, err
+		}
+
+		// If the inst is not nil we found an item.
+		if inst != nil {
+			*list = append(*list, *inst)
 		} else {
 			break
 		}
@@ -86,13 +124,13 @@ func parseList(t_stream *TokenStream, t_fn parseFnNode, t_sep TokenType) (NodeLi
 }
 
 // Parsing functions:
-func accessorName(t_stream *TokenStream) (Node, error) {
-	var node Node
-	defer func() { logUnlessNil("accessorName", node) }()
+func accessorName(t_stream *TokenStream) (ValuePtr, error) {
+	var value ValuePtr
+	defer func() { logUnlessNil("accessorName", value) }()
 
 	// Guard clause.
 	if t_stream.Eos() {
-		return node, nil
+		return value, nil
 	}
 
 	dot := t_stream.Current()
@@ -103,7 +141,7 @@ func accessorName(t_stream *TokenStream) (Node, error) {
 		t_stream.Next()
 
 		if t_stream.Eos() {
-			return node, errUnexpectedEos("accessorName")
+			return value, errUnexpectedEos("accessorName")
 		}
 
 		// Identifier and string are both converted to the same value.
@@ -112,28 +150,27 @@ func accessorName(t_stream *TokenStream) (Node, error) {
 		case IDENTIFIER:
 			fallthrough
 		case STRING:
-			node, err := a.InitAccessorName(token.Value)
-			if err != nil {
-				return node, nil
-			}
+			name := ir.InitValue(ir.FieldByName, token.Value)
+
+			value = &name
 			break
 
 		default:
-			return node, errExpectedString("accessorName", "identifier or string")
+			return value, errExpectedString("accessorName", "identifier or string")
 		}
 
 	}
 
-	return node, nil
+	return value, nil
 }
 
-func accessorPositional(t_stream *TokenStream) (Node, error) {
-	var node Node
-	defer func() { logUnlessNil("accessorName", node) }()
+func accessorPositional(t_stream *TokenStream) (ValuePtr, error) {
+	var value ValuePtr
+	defer func() { logUnlessNil("accessorName", value) }()
 
 	// Guard clause.
 	if t_stream.Eos() {
-		return node, nil
+		return value, nil
 	}
 
 	dollarSign := t_stream.Current()
@@ -144,80 +181,74 @@ func accessorPositional(t_stream *TokenStream) (Node, error) {
 		t_stream.Next()
 
 		if t_stream.Eos() {
-			return node, errUnexpectedEos("accessorPositional")
+			return value, errUnexpectedEos("accessorPositional")
 		}
 
 		// Identifier value must be used to convert to a string later.
 		// Possibly add expressions or arithmetic expressions later down the line.
 		token := t_stream.Current()
 		switch token.Type {
-		case IDENTIFIER:
-			return node, nil
+		// FIXME: For now not allowed.
+		// case IDENTIFIER:
+		// 	return value, nil
 
 		case NUMBER:
-			integer, err := strconv.ParseInt(token.Value, 10, 64)
-			if err != nil {
-				return node, nil
-			}
+			// integer, err := strconv.ParseInt(token.Value, 10, 64)
+			pos := ir.InitValue(ir.FieldByPosition, token.Value)
 
-			positionalNode, err := a.InitAccessorPositional(integer)
-			if err != nil {
-				return node, nil
-			}
-
-			node = &positionalNode
+			value = &pos
 			break
 
 		default:
-			return node, errExpectedString("accessorPositional", "identifier or number")
+			return value, errExpectedString("accessorPositional", "identifier or number")
 		}
 
 	}
 
-	return node, nil
+	return value, nil
 }
 
-func column(t_stream *TokenStream) (Node, error) {
-	var node Node
+func column(t_stream *TokenStream) (ValuePtr, error) {
+	var value ValuePtr
 
 	// Check for a name based column accessor.
-	if nameNode, err := accessorName(t_stream); validNode(nameNode, err) {
-		node = &nameNode
+	if name, err := accessorName(t_stream); validPtr(name, err) {
+		value = name
 	} else if err != nil {
-		return node, err
+		return value, err
 
 		// Check for a positional based column accessor.
-	} else if posNode, err := accessorPositional(t_stream); validNode(posNode, err) {
-		node = &posNode
+	} else if pos, err := accessorPositional(t_stream); validPtr(pos, err) {
+		value = pos
 	} else {
-		return node, err
+		return value, err
 	}
 
-	return node, nil
+	return value, nil
 }
 
-func parameter(t_stream *TokenStream) (Node, error) {
+func parameter(t_stream *TokenStream) (ValuePtr, error) {
 	return rvalue(t_stream)
 }
 
-func parameterList(t_stream *TokenStream) (NodeList, error) {
-	return parseList(t_stream, parameter, COMMA)
+func parameterList(t_stream *TokenStream) (ValueListPtr, error) {
+	return parseValueList(t_stream, parameter, COMMA)
 }
 
 // Ast:
-func keyword(t_stream *TokenStream) (Node, error) {
-	var node Node
+func keyword(t_stream *TokenStream) (InstPtr, error) {
+	var inst InstPtr
 
-	return node, nil
+	return inst, nil
 }
 
-func rvalue(t_stream *TokenStream) (Node, error) {
-	var node Node
-	defer func() { logUnlessNil("rvalue", node) }()
+func rvalue(t_stream *TokenStream) (ValuePtr, error) {
+	var value ValuePtr
+	defer func() { logUnlessNil("rvalue", value) }()
 
 	// Guard clause.
 	if t_stream.Eos() {
-		return node, nil
+		return value, nil
 	}
 
 	token := t_stream.Current()
@@ -225,85 +256,77 @@ func rvalue(t_stream *TokenStream) (Node, error) {
 	// TODO: Refactor boilerplate later.
 	switch token.Type {
 	case NUMBER:
-		number, err := a.InitNumber(token.Value)
-		if err != nil {
-			return node, err
-		}
+		number := ir.InitValue(ir.Number, token.Value)
 
-		node = &number
+		value = &number
 		t_stream.Next()
 		break
 
 	case STRING:
-		str, err := a.InitString(token.Value)
-		if err != nil {
-			return node, err
-		}
+		str := ir.InitValue(ir.String, token.Value)
 
-		node = &str
+		value = &str
 		t_stream.Next()
 		break
 
 	case IDENTIFIER:
-		id, err := a.InitIdentifier(token.Value)
-		if err != nil {
-			return node, err
-		}
+		id := ir.InitValue(ir.Identifier, token.Value)
 
-		node = &id
+		value = &id
 		t_stream.Next()
 		break
 
 	default:
-		columnNode, err := column(t_stream)
+		// TODO: figure this out.
+		col, err := column(t_stream)
 		if err != nil {
-			return node, err
+			return value, err
 		}
 
-		node = &columnNode
+		value = col
 		t_stream.Next()
 		break
 	}
 
-	return node, nil
+	return value, nil
 }
 
 // Initialize the comparison.
-func initComparison[T a.ComparisonType](t_stream *TokenStream, t_lhs Node) (Node, error) {
-	var node Node
+func initComparison(t_stream *TokenStream, t_type ir.InstructionType, t_lhs ValuePtr) (InstPtr, error) {
+	var inst InstPtr
 
 	t_stream.Next()
 	if t_stream.Eos() {
-		return node, errUnexpectedEos("initComparison")
+		return inst, errUnexpectedEos("initComparison")
 	}
 
 	rhs, err := rvalue(t_stream)
 	if err != nil {
-		return node, err
+		return inst, err
 	}
 
 	if rhs == nil {
-		return node, errExpectedString("initComparison", "right hand side of expression")
+		return inst, errExpectedString("initComparison", "right hand side of expression")
 	}
 
-	comp := a.InitComparison[T](t_lhs, rhs)
-	node = &comp
+	comp := ir.InitInstruction(t_type, *t_lhs, *rhs)
+	inst = &comp
 
-	return node, nil
+	return inst, nil
 }
 
-func expr(t_stream *TokenStream) (Node, error) {
-	var node Node
-	defer func() { logUnlessNil("expr", node) }()
+func expr(t_stream *TokenStream) (InstPtr, error) {
+	var inst InstPtr
+	defer func() { logUnlessNil("expr", inst) }()
 
 	lhs, err := rvalue(t_stream)
 	if err != nil {
-		return node, err
+		return inst, err
 	}
 
 	if lhs != nil {
 		if t_stream.Eos() {
-			return node, errUnexpectedEos("expr")
+			return inst, errUnexpectedEos("expr")
 		}
 
 		token := t_stream.Current()
@@ -311,94 +334,94 @@ func expr(t_stream *TokenStream) (Node, error) {
 		// TODO: Cleanup boilerplate.
 		switch token.Type {
 		case LESS_THAN:
-			ltNode, err := initComparison[a.LessThan](t_stream, lhs)
+			ltPtr, err := initComparison(t_stream, ir.LessThan, lhs)
 			if err != nil {
-				return node, err
+				return inst, err
 			}
 
-			node = &ltNode
+			inst = ltPtr
 			break
 
 		case LESS_THAN_EQUAL:
-			lteNode, err := initComparison[a.LessThanEqual](t_stream, lhs)
+			ltePtr, err := initComparison(t_stream, ir.LessThanEqual, lhs)
 			if err != nil {
-				return node, err
+				return inst, err
 			}
 
-			node = &lteNode
+			inst = ltePtr
 			break
 
 		case EQUAL:
-			eqNode, err := initComparison[a.Equal](t_stream, lhs)
+			eqPtr, err := initComparison(t_stream, ir.Equal, lhs)
 			if err != nil {
-				return node, err
+				return inst, err
 			}
 
-			node = &eqNode
+			inst = eqPtr
 			break
 
 		case NOT_EQUAL:
-			neNode, err := initComparison[a.NotEqual](t_stream, lhs)
+			nePtr, err := initComparison(t_stream, ir.NotEqual, lhs)
 			if err != nil {
-				return node, err
+				return inst, err
 			}
 
-			node = &neNode
+			inst = nePtr
 			break
 
 		case GREATER_THAN:
-			gtNode, err := initComparison[a.GreaterThan](t_stream, lhs)
+			gtPtr, err := initComparison(t_stream, ir.GreaterThan, lhs)
 			if err != nil {
-				return node, err
+				return inst, err
 			}
 
-			node = &gtNode
+			inst = gtPtr
 			break
 
 		case GREATER_THAN_EQUAL:
-			gteNode, err := initComparison[a.GreaterThanEqual](t_stream, lhs)
+			gtePtr, err := initComparison(t_stream, ir.GreaterThanEqual, lhs)
 			if err != nil {
-				return node, err
+				return inst, err
 			}
 
-			node = &gteNode
+			inst = gtePtr
 			break
 		}
 	}
 
-	return node, nil
+	return inst, nil
 }
 
-func item(t_stream *TokenStream) (Node, error) {
-	var node Node
+func item(t_stream *TokenStream) (InstPtr, error) {
+	var inst InstPtr
 
 	// Check for keywords.
-	if keywordNode, err := keyword(t_stream); validNode(keywordNode, err) {
-		node = &keywordNode
+	if keywordPtr, err := keyword(t_stream); validPtr(keywordPtr, err) {
+		inst = keywordPtr
 	} else if err != nil {
-		return node, err
+		return inst, err
 
 		// Check for an epxression.
-	} else if exprNode, err := expr(t_stream); validNode(exprNode, err) {
-		node = &exprNode
+	} else if exprPtr, err := expr(t_stream); validPtr(exprPtr, err) {
+		inst = exprPtr
 	} else if err != nil {
-		return node, err
+		return inst, err
 	}
 
-	return node, nil
+	return inst, nil
 }
 
-func itemList(t_stream *TokenStream) (NodeList, error) {
+func itemList(t_stream *TokenStream) (InstListPtr, error) {
 	return parseList(t_stream, item, PIPE)
 }
 
 // This function is here purely just to match the grammary.yy.
-func program(t_stream *TokenStream) (NodeList, error) {
+func program(t_stream *TokenStream) (InstListPtr, error) {
 	return itemList(t_stream)
 }
 
 // Source code to parse.
-func Parse(t_stream *TokenStream) (NodeList, error) {
+func Parse(t_stream *TokenStream) (InstListPtr, error) {
 	u.Logf("BEGIN PARSING.")
 	defer u.Logf("END PARSING.")
 
