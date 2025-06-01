@@ -1,11 +1,16 @@
 package filter
 
 import (
+	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
 )
 
 type Filter struct {
 	Instructions InstListPtr
+}
+
+func (this *Filter) exec(t_table *td.TableData) {
+	// Exec
 }
 
 // This constructs the AST.
