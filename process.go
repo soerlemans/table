@@ -16,9 +16,6 @@ type ProcessContext struct {
 
 	// Internal table representation.
 	Table td.TableData
-
-	// Raw input in row format.
-	// Input []string
 }
 
 // Gives a unique id for every Processcontext.
@@ -42,8 +39,12 @@ func Process(t_ctx ProcessContext) []string {
 	// something like a Table structure, consisting of columns, rows, etc.
 
 	rows := t_ctx.Table.RowsData
-	for i, line := range rows {
-		u.Printf("line(%d:%d): %s", i, t_ctx.Id, line)
+	for index, line := range rows {
+		filter := t_ctx.Filter
+		tablePtr := &t_ctx.Table
+
+		filter.Exec(index, tablePtr)
+		u.Printf("line(%d:%d): %s", index, t_ctx.Id, line)
 	}
 
 	return nil

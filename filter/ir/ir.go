@@ -11,13 +11,12 @@ type ValueList = []Value
 type InstructionType int
 
 const (
-	xxx InstructionType = iota
+	// TODO: figure out if needed.
+	// LoadVariable
+	// StoreVariable
+	// LoadField
 
-	LoadVariable
-	StoreVariable
-	LoadField
-
-	LessThan
+	LessThan InstructionType = iota
 	LessThanEqual
 	Equal
 	NotEqual
