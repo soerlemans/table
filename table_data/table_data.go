@@ -29,7 +29,7 @@ type TableData struct {
 	// Used for getting column data by header name.
 	// We zero index instead of glorious Awk.
 	HeadersMap map[string]int
-	Headers    []string
+	Headers    TableDataRow
 
 	// TODO: See if this plays out or if we want to use []string.
 	// And do the field separation on the fly.

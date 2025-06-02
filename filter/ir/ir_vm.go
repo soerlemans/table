@@ -6,6 +6,7 @@ import (
 
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
+	w "github.com/soerlemans/table/writer"
 )
 
 type VmPtr = *IrVm
@@ -17,8 +18,11 @@ type IrVm struct {
 	Index int
 	Table *td.TableData
 
-	// Contains output writers to register.
-	// OutputWriterRegistrar
+	// Contains all registered output writers.
+	OutputWriters []w.Writer
+
+	// The out writer can only have one (for now), and is always the last.
+	OutWriter *w.Writer
 }
 
 // TODO: The index and tableData should be wrapped in a struct or something.
