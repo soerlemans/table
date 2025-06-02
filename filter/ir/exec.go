@@ -127,6 +127,8 @@ func execComparison(t_index int, t_table *td.TableData, t_type InstructionType, 
 		}
 
 		result = (intLhs < intRhs)
+
+		u.Logf("LessThan: %d < %d", intLhs, intRhs)
 		break
 
 	case LessThanEqual:
@@ -219,6 +221,7 @@ func ExecIr(instructions InstructionList, t_index int, t_table *td.TableData) er
 		case LessThan:
 			fallthrough
 		case LessThanEqual:
+			fallthrough
 		case Equal:
 			fallthrough
 		case NotEqual:
@@ -236,6 +239,10 @@ func ExecIr(instructions InstructionList, t_index int, t_table *td.TableData) er
 			if !cmp {
 				skip = true
 			}
+			break
+
+		case MdBlock:
+			// Convert to markdown.
 			break
 
 		default:
