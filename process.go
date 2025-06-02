@@ -2,6 +2,7 @@ package main
 
 import (
 	f "github.com/soerlemans/table/filter"
+	"github.com/soerlemans/table/filter/ir"
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
 )
@@ -31,22 +32,22 @@ func initProcessContext(t_filter *f.Filter, t_table td.TableData) ProcessContext
 	return ctx
 }
 
-func Process(t_ctx ProcessContext) []string {
-	// Parse filtering code to create a Pipe like data structure.
-	// Some kind of decorator structure which.
-	// Can then be executed like an AST.
-	// Just create a single data type for processing.
-	// something like a Table structure, consisting of columns, rows, etc.
+func Process(t_ctx ProcessContext) error {
+	filter := t_ctx.Filter
+	vm, err := ir.InitIrVm(&t_ctx.Table)
+	if err != nil {
+		return err
+	}
 
 	rows := t_ctx.Table.RowsData
 	for index, _ := range rows {
-		filter := t_ctx.Filter
-		tablePtr := &t_ctx.Table
+		inst := filter.Instructions
 
-		// Execute filters on the current row index.
-		filter.Exec(index, tablePtr)
+		// Update the virtual machines row index.
+		vm.Index = index
 
-		// u.Printf("line(%d:%d): %s", index, t_ctx.Id, line)
+		// Execute instructions for current line.
+		vm.ExecIr(*inst)
 	}
 
 	return nil

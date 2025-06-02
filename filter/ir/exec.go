@@ -8,6 +8,19 @@ import (
 	u "github.com/soerlemans/table/util"
 )
 
+type VmPtr = *IrVm
+
+// Short of intermediary representation virtual machine.
+type IrVm struct {
+	VariableStore map[string]string
+
+	Index int
+	Table *td.TableData
+
+	// Contains output writers to register.
+	// OutputWriterRegistrar
+}
+
 // TODO: The index and tableData should be wrapped in a struct or something.
 // Now we pass them all the time together we should curry this.
 
@@ -25,14 +38,15 @@ func toInt(t_str string) (int, error) {
 	return result, nil
 }
 
-var variableStore = make(map[string]string)
-
-func resolveValue(t_value Value, t_index int, t_table *td.TableData) (string, error) {
+func (this *IrVm) resolveValue(t_value Value) (string, error) {
 	var value string
+
+	index := this.Index
+	table := this.Table
 
 	switch t_value.Type {
 	case Identifier:
-		variable, ok := variableStore[t_value.Value]
+		variable, ok := this.VariableStore[t_value.Value]
 		if !ok {
 			u.Logln("resolveValue: Non existent variable referenced.")
 
@@ -54,7 +68,7 @@ func resolveValue(t_value Value, t_index int, t_table *td.TableData) (string, er
 
 	case FieldByName:
 		name := t_value.Value
-		cell, err := t_table.CellByColName(t_index, name)
+		cell, err := table.CellByColName(index, name)
 		if err != nil {
 			return value, err
 		}
@@ -70,12 +84,12 @@ func resolveValue(t_value Value, t_index int, t_table *td.TableData) (string, er
 
 		// Handle negative indices, to count from the end.
 		if colIndex < 0 {
-			colIndex = t_table.HeaderLength() - colIndex
+			colIndex = table.HeaderLength() - colIndex
 
 			u.Logf("resolveValue: Negative indice %d.", colIndex)
 		}
 
-		cell, err := t_table.CellByIndices(t_index, colIndex)
+		cell, err := table.CellByIndices(index, colIndex)
 		if err != nil {
 			return value, err
 		}
@@ -93,18 +107,18 @@ func resolveValue(t_value Value, t_index int, t_table *td.TableData) (string, er
 	return value, nil
 }
 
-func execComparison(t_index int, t_table *td.TableData, t_type InstructionType, t_list ValueList) (bool, error) {
+func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool, error) {
 	var result bool
 
 	lhs := t_list[0]
 	rhs := t_list[1]
 
-	resLhs, err := resolveValue(lhs, t_index, t_table)
+	resLhs, err := this.resolveValue(lhs)
 	if err != nil {
 		return result, err
 	}
 
-	resRhs, err := resolveValue(rhs, t_index, t_table)
+	resRhs, err := this.resolveValue(rhs)
 	if err != nil {
 		return result, err
 	}
@@ -198,22 +212,26 @@ func execComparison(t_index int, t_table *td.TableData, t_type InstructionType, 
 
 // TODO: receive an output buffer to write to or something.
 // Or something else.
-func ExecIr(instructions InstructionList, t_index int, t_table *td.TableData) error {
-	out, err := t_table.RowAsStr(t_index)
+func (this *IrVm) ExecIr(instructions InstructionList) error {
+	index := this.Index
+	table := this.Table
+
+	out, err := table.RowAsStr(index)
 	if err != nil {
 		return err
 	}
 
 	// Extract required global vars.
-	rowLength := t_table.RowLength()
-	headerLength := t_table.HeaderLength()
+	rowLength := table.RowLength()
+	headerLength := table.HeaderLength()
 
+	// TODO: Refactor this init.
 	// Set global variables for each execution.
 	// These are similar to AWK.
-	variableStore["FNR"] = fmt.Sprintf("%d", t_index)
-	variableStore["NR"] = fmt.Sprintf("%d", rowLength)
+	this.VariableStore["FNR"] = fmt.Sprintf("%d", index)
+	this.VariableStore["NR"] = fmt.Sprintf("%d", rowLength)
 
-	variableStore["HR"] = fmt.Sprintf("%d", headerLength)
+	this.VariableStore["HR"] = fmt.Sprintf("%d", headerLength)
 
 	skip := false
 	for _, inst := range instructions {
@@ -229,7 +247,7 @@ func ExecIr(instructions InstructionList, t_index int, t_table *td.TableData) er
 		case GreaterThan:
 			fallthrough
 		case GreaterThanEqual:
-			cmp, err := execComparison(t_index, t_table, inst.Type, inst.Operands)
+			cmp, err := this.execComparison(inst.Type, inst.Operands)
 			// Consider if we should return/fail in this case as number errors could just be ignored.
 			if err != nil {
 				return err
@@ -262,4 +280,15 @@ func ExecIr(instructions InstructionList, t_index int, t_table *td.TableData) er
 	}
 
 	return nil
+}
+
+func InitIrVm(t_table *td.TableData) (IrVm, error) {
+	var vm IrVm
+	defer func() { u.LogStructName("InitIrVm", vm, u.ETC80) }()
+
+	// Do init.
+	vm.VariableStore = make(map[string]string)
+	vm.Table = t_table
+
+	return vm, nil
 }
