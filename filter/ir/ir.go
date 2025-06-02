@@ -49,7 +49,7 @@ type Value struct {
 
 // TODO:
 type Instruction struct {
-	Id       string
+	Label    string
 	Type     InstructionType
 	Operands ValueList
 }
