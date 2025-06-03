@@ -574,14 +574,17 @@ func program(t_stream *TokenStream) (InstListPtr, error) {
 
 // Source code to parse.
 func Parse(t_stream *TokenStream) (InstListPtr, error) {
-	list := new(ir.InstructionList)
+	var (
+		list = new(ir.InstructionList)
+		err  error
+	)
 
 	u.Logf("BEGIN PARSING.")
 	defer u.Logf("END PARSING.")
 
 	if t_stream.Len() > 0 {
 		// If we have received tokens start parsing.
-		list, err := program(t_stream)
+		list, err = program(t_stream)
 		if err != nil {
 			return list, err
 		}

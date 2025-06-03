@@ -150,6 +150,7 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 
 	// Equal and not Equal are always compared as strings.
 	case Equal:
+		u.Logf("execComparison: %s == %s", resLhs, resRhs)
 		if isNumberComp {
 			// TODO: Implement conversion.
 			result = (resLhs == resRhs)
@@ -233,6 +234,7 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			break
 
 		case Md:
+			u.Logln("ExecIr: Switching to md writer.")
 			md, err := w.InitMdWriter(inst.Label)
 			if err != nil {
 				return err
@@ -282,8 +284,9 @@ func InitIrVm(t_table *td.TableData) (IrVm, error) {
 
 	// Do init.
 	vm.VariableStore = make(map[string]string)
-
 	vm.Table = t_table
+
+	// Set writer field.
 	writer, err := w.InitCsvWriter("ldefault")
 	if err != nil {
 		return vm, err

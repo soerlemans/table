@@ -66,6 +66,12 @@ func initArgs() (Arguments, error) {
 		return args, err
 	}
 
+	// If no input format was specified automatically assume csv input.
+	if !(args.Csv && args.Json && args.Excel) {
+		util.Logln("No specific input format was specified assuming csv.")
+		args.Csv = true
+	}
+
 	// Do log this, for debugging purposes.
 	if len(args.ProgramText) == 0 {
 		util.Logf("No program text given.")
