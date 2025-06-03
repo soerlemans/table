@@ -285,9 +285,12 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			break
 		}
 
-		if skip {
-			break
-		}
+		// If we dont check all instructions we skip the setting of the writer.
+		// Then a edge case appears where if non of the lines are matched.
+		// We stick with the default CSV writer.
+		// if skip {
+		// 	break
+		// }
 	}
 
 	// Only add the row to output if the current line isnt skipped.

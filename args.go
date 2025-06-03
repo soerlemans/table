@@ -14,7 +14,7 @@ type Arguments struct {
 	ProgramFile    string `arg:"-f,--file" help:"Path to file containing filters."`
 	FromStdin      bool   `arg:"--stdin" help:"Specifies if the program should read from stdin." default:"false"`
 	FieldSeparator rune   `arg:"-F,--field-separator" help:"Define the field separator."`
-	Csv            bool   `help:"Define that input is CSV."`
+	Csv            bool   `help:"Define that input is CSV (default)."`
 	Json           bool   `help:"Define that input is JSON."`
 	Excel          bool   `help:"Define that input is Excel. "`
 
