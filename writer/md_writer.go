@@ -61,8 +61,8 @@ func (this *MdWriter) AddRow(t_row td.TableDataRow) {
 	this.updateColWidth(t_row)
 }
 
-func (this *MdWriter) printTableHeader() error {
-	for index, cell := range this.Headers {
+func (this *MdWriter) printRow(t_row td.TableDataRow) error {
+	for index, cell := range t_row {
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
 			// TODO: Return err.
@@ -73,6 +73,10 @@ func (this *MdWriter) printTableHeader() error {
 	fmt.Println("|")
 
 	return nil
+}
+
+func (this *MdWriter) printTableHeader() error {
+	return this.printRow(this.Headers)
 }
 
 func (this *MdWriter) printTableHeaderSep() error {
@@ -94,15 +98,10 @@ func (this *MdWriter) printTableRows() error {
 	// Print per row.
 	for _, row := range this.Rows {
 		// Print cells of the row.
-		for index, cell := range row {
-			colWidth, ok := this.ColWidth[index]
-			if !ok {
-				// TODO: Return err.
-			}
-
-			fmt.Printf("| %-*s ", colWidth, cell)
+		err := this.printRow(row)
+		if err != nil {
+			return err
 		}
-		fmt.Println("|")
 	}
 
 	return nil
