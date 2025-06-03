@@ -18,6 +18,7 @@ const (
 
 	COMMA_RN = ','
 	PIPE_RN  = '|'
+	COLON_RN  = ':'
 
 	LESS_THAN_STR       = "<"
 	LESS_THAN_EQUAL_STR = "<="
@@ -35,9 +36,10 @@ var singleRuneSymbols = map[string]TokenType{
 	string(DOLLAR_SIGN_RN): ACCESSOR_POSITIONAL,
 	string(COMMA_RN):       COMMA,
 	string(PIPE_RN):        PIPE,
+	string(COLON_RN):        COLON,
 
-	LESS_THAN_STR:       LESS_THAN,
-	GREATER_THAN_STR:       GREATER_THAN,
+	LESS_THAN_STR:    LESS_THAN,
+	GREATER_THAN_STR: GREATER_THAN,
 }
 
 // Multi rune symbols mapped to TokenType.
@@ -277,10 +279,10 @@ func lexSymbol(t_stream *s.StringStream) (Token, bool) {
 
 // Lex the program text and return a TokenVec.
 func Lex(t_text string) (TokenStream, error) {
-	var tokenStream TokenStream
+	tokenStream := s.InitSliceStreamEmpty[Token]()
 	defer func() { u.Logf("tokenStream: %v", tokenStream.View) }()
 
-	u.Logf("ProgramText: %s", t_text)
+	u.Logf("ProgramText: \"%s\"", t_text)
 
 	runeStream := s.InitStringStream(&t_text)
 

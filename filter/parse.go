@@ -103,14 +103,15 @@ func parseList(t_stream *TokenStream, t_fn parseFnInst, t_sep TokenType) (InstLi
 				break
 			}
 		}
-
 	}
 
 	return list, nil
 }
 
+// TODO: Create generic function which unifies ParseList and ParseValueList.
 func parseValueList(t_stream *TokenStream, t_fn parseFnValue, t_sep TokenType) (ValueListPtr, error) {
 	var list ValueListPtr = new(ir.ValueList)
+	defer func() { logUnlessNil("parseValueList", list) }()
 
 	for {
 		inst, err := t_fn(t_stream)
@@ -130,11 +131,21 @@ func parseValueList(t_stream *TokenStream, t_fn parseFnValue, t_sep TokenType) (
 			token := t_stream.Current()
 
 			// If no intermediary pipe symbol was found we should quit.
-			if token.Type != t_sep {
+			if token.Type == t_sep {
+				u.Logf("Found sep: %s", token.Type)
+
+				// Skip past the separator.
+				t_stream.Next()
+
+				// If after the separator we get an eos this unexpected.
+				if t_stream.Eos() {
+					return list, errUnexpectedEos("parseList")
+					break
+				}
+			} else {
 				break
 			}
 		}
-
 	}
 
 	return list, nil
@@ -402,7 +413,11 @@ func expr(t_stream *TokenStream) (InstPtr, error) {
 }
 
 func keyword(t_stream *TokenStream) (InstPtr, error) {
-	var inst InstPtr
+	var (
+		inst InstPtr
+		list ValueListPtr = new(ir.ValueList)
+		err  error
+	)
 	defer func() { logUnlessNil("keyword", inst) }()
 
 	// Guard clause.
@@ -413,9 +428,12 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 	token := t_stream.Current()
 	switch token.Type {
 	case WHEN:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
 		}
 
 		when := ir.InitInstructionByList(ir.When, *list)
@@ -424,9 +442,12 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 		break
 
 	case MUT:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
 		}
 
 		mut := ir.InitInstructionByList(ir.Mut, *list)
@@ -467,9 +488,9 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 			}
 		}
 
-		out := ir.InitInstructionByList(ir.Csv, *list)
+		csv := ir.InitInstructionByList(ir.Csv, *list)
 
-		inst = &out
+		inst = &csv
 		break
 
 	case MD:
@@ -564,12 +585,28 @@ func program(t_stream *TokenStream) (InstListPtr, error) {
 
 // Source code to parse.
 func Parse(t_stream *TokenStream) (InstListPtr, error) {
+	var (
+		list = new(ir.InstructionList)
+		err  error
+	)
+
 	u.Logf("BEGIN PARSING.")
 	defer u.Logf("END PARSING.")
 
-	list, err := program(t_stream)
-	if err != nil {
-		return list, err
+	if t_stream.Len() > 0 {
+		// If we have received tokens start parsing.
+		list, err = program(t_stream)
+		if err != nil {
+			return list, err
+		}
+	} else {
+		// If no token were found, assume default query (csv output).
+		vlist := new(ir.ValueList)
+		csv := ir.InitInstructionByList(ir.Csv, *vlist)
+
+		*list = append(*list, csv)
+
+		u.Logln("No tokens found, using default csv output writer.")
 	}
 
 	u.Logf("Instructions: %v", *list)

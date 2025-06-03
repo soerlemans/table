@@ -31,6 +31,9 @@ const (
 	// This is the pipe that separates multiple expressions.
 	PIPE
 
+	// Little token for separating input on output specifiers.
+	COLON
+
 	// Comparison Operators:
 	LESS_THAN
 	LESS_THAN_EQUAL
@@ -87,6 +90,8 @@ func (t TokenType) String() string {
 		return ","
 	case PIPE:
 		return "|"
+	case COLON:
+		return ":"
 	case LESS_THAN:
 		return "<"
 	case LESS_THAN_EQUAL:

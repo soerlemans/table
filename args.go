@@ -14,7 +14,7 @@ type Arguments struct {
 	ProgramFile    string `arg:"-f,--file" help:"Path to file containing filters."`
 	FromStdin      bool   `arg:"--stdin" help:"Specifies if the program should read from stdin." default:"false"`
 	FieldSeparator rune   `arg:"-F,--field-separator" help:"Define the field separator."`
-	Csv            bool   `help:"Define that input is CSV."`
+	Csv            bool   `help:"Define that input is CSV (default)."`
 	Json           bool   `help:"Define that input is JSON."`
 	Excel          bool   `help:"Define that input is Excel. "`
 
@@ -31,8 +31,6 @@ func (Arguments) Version() string {
 // Globals:
 const (
 	VERSION = "0.1"
-
-	DEFAULT_FILTER = "."
 )
 
 // Functions:
@@ -68,10 +66,15 @@ func initArgs() (Arguments, error) {
 		return args, err
 	}
 
+	// If no input format was specified automatically assume csv input.
+	if !(args.Csv && args.Json && args.Excel) {
+		util.Logln("No specific input format was specified assuming csv.")
+		args.Csv = true
+	}
+
+	// Do log this, for debugging purposes.
 	if len(args.ProgramText) == 0 {
-		defaultFilter := util.Quote(DEFAULT_FILTER)
-		util.Logf("No program text given, apply default: %s", defaultFilter)
-		args.ProgramText = DEFAULT_FILTER
+		util.Logf("No program text given.")
 	}
 
 	// If no input files are supplied check stdin.

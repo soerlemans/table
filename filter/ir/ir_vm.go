@@ -93,6 +93,21 @@ func (this *IrVm) resolveValue(t_value Value) (string, error) {
 	return value, nil
 }
 
+func (this *IrVm) resolveValues(t_values ValueList) ([]string, error) {
+	var slice []string
+
+	for _, value := range t_values {
+		str, err := this.resolveValue(value)
+		if err != nil {
+			return slice, err
+		}
+
+		slice = append(slice, str)
+	}
+
+	return slice, nil
+}
+
 func (this *IrVm) binaryExprResolve(t_lhs Value, t_rhs Value) (string, string, error) {
 	var (
 		lhs string
@@ -111,7 +126,6 @@ func (this *IrVm) binaryExprResolve(t_lhs Value, t_rhs Value) (string, string, e
 
 	return lhs, rhs, nil
 }
-
 
 func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool, error) {
 	var result bool
@@ -151,6 +165,7 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 
 	// Equal and not Equal are always compared as strings.
 	case Equal:
+		u.Logf("execComparison: %s == %s", resLhs, resRhs)
 		if isNumberComp {
 			// TODO: Implement conversion.
 			result = (resLhs == resRhs)
@@ -196,11 +211,6 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 	index := this.Index
 	table := this.Table
 
-	out, err := table.RowAsStr(index)
-	if err != nil {
-		return err
-	}
-
 	// Extract required global vars.
 	rowLength := table.RowLength()
 	headerLength := table.HeaderLength()
@@ -239,7 +249,34 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			break
 
 		case Md:
-			// Convert to markdown.
+			u.Logln("ExecIr: Switching to md writer.")
+			md, err := w.InitMdWriter(inst.Label)
+			if err != nil {
+				return err
+			}
+
+			// TODO: Write a copy/switch function.
+			// Or maybe use a pointer for the internal data.
+			// Update the headers.
+			md.SetHeaders(this.Table.Headers)
+
+			// Copy over the old registered rows.
+			rows := this.Writer.GetRows()
+			md.SetRows(rows)
+
+			colNames, err := this.resolveValues(inst.Operands)
+			if err != nil {
+				return err
+			}
+
+			indices, err := this.Table.ColNamesToIndices(colNames)
+			if err != nil {
+				return err
+			}
+
+			md.SetMask(indices)
+
+			this.Writer = &md
 			break
 
 		default:
@@ -248,17 +285,29 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			break
 		}
 
-		if skip {
-			break
-		}
+		// If we dont check all instructions we skip the setting of the writer.
+		// Then a edge case appears where if non of the lines are matched.
+		// We stick with the default CSV writer.
+		// if skip {
+		// 	break
+		// }
 	}
 
-	// Only print if we should not skip.
+	// Only add the row to output if the current line isnt skipped.
 	if !skip {
-		fmt.Println(out)
+		row, err := table.GetRow(index)
+		if err != nil {
+			return err
+		}
+
+		this.Writer.AddRow(row)
 	}
 
 	return nil
+}
+
+func (this *IrVm) Write() error {
+	return this.Writer.Write()
 }
 
 func InitIrVm(t_table *td.TableData) (IrVm, error) {
@@ -267,14 +316,16 @@ func InitIrVm(t_table *td.TableData) (IrVm, error) {
 
 	// Do init.
 	vm.VariableStore = make(map[string]string)
-
 	vm.Table = t_table
+
+	// Set writer field.
 	writer, err := w.InitCsvWriter("ldefault")
 	if err != nil {
 		return vm, err
 	}
 
 	vm.Writer = &writer
+	vm.Writer.SetHeaders(vm.Table.Headers)
 
 	return vm, nil
 }

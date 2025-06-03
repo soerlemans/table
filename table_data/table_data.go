@@ -66,18 +66,62 @@ func (this *TableData) CellByIndices(t_row int, t_col int) (string, error) {
 	return cell, nil
 }
 
+func (this *TableData) ColNameToIndex(t_colName string) (int, error) {
+	// Fetch the index of a header by the resolving the header map.
+	colIndex, ok := this.HeadersMap[t_colName]
+	if !ok {
+		errStr := fmt.Sprintf("Non existent column name: %s.", t_colName)
+		err := errors.New(errStr)
+		return colIndex, err
+	}
+
+	return colIndex, nil
+}
+
+func (this *TableData) ColNamesToIndices(t_colNames []string) ([]int, error) {
+	var indices []int
+
+	for _, name := range t_colNames {
+		colIndex, err := this.ColNameToIndex(name)
+		if err != nil {
+			return indices, err
+		}
+
+		indices = append(indices, colIndex)
+	}
+
+	return indices, nil
+}
+
 // Get a specific cell by index and column name.
 func (this *TableData) CellByColName(t_row int, t_name string) (string, error) {
-	// Fetch the index of a header by the resolving the header map.
-	t_col, ok := this.HeadersMap[t_name]
-	if !ok {
-		errStr := fmt.Sprintf("Non existent column name: %s.", t_name)
-		err := errors.New(errStr)
+	colIndex, err := this.ColNameToIndex(t_name)
+	if err != nil {
 		return "", err
 	}
 
 	// Now get them by indices.
-	return this.CellByIndices(t_row, t_col)
+	return this.CellByIndices(t_row, colIndex)
+}
+
+func (this *TableData) GetRow(t_row int) (TableDataRow, error) {
+	var row TableDataRow
+	defer func() { u.Logf("GetRow: %s.", u.Quote(row)) }()
+
+	if t_row < this.RowLength() {
+		rowArray := this.RowsData[t_row]
+
+		// Append to the line string, for each cell.
+		for _, cell := range rowArray {
+			row = append(row, cell)
+		}
+
+	} else {
+		err := u.Errorf("Row index is out of bounds (%d).", t_row)
+		return row, err
+	}
+
+	return row, nil
 }
 
 func (this *TableData) RowAsStr(t_row int) (string, error) {
