@@ -23,11 +23,13 @@ const (
 	GreaterThan
 	GreaterThanEqual
 
-	WhenBlock
-	MutBlock
-	OutBlock
-	MdBlock
-	JsonBlock
+	When
+	Mut
+
+	Csv
+	Md
+	Json
+	Html
 )
 
 type ValueType int

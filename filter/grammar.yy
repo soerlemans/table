@@ -13,7 +13,10 @@
 %token DOLLAR_SIGN
 
 // Keywords:
-%token  WHEN MUT OUT MD JSON
+%token  WHEN MUT
+
+// Write directives.
+%token CSV MD JSON HTML
 
 // Comparison:
 %token LE LTE EQ NE GE GTE
@@ -40,18 +43,6 @@ parameter_list   : // empty
                  | parameter
                  ;
 
-keyword_ out     : OUT
-                 | OUT STRING
-                 | OUT STRING COMMA parameter_list
-                 ;
-
-keyword          : WHEN expr
-                 | MUT expr
-                 | keyword_out
-                 | MD parameter_list
-                 | JSON parameter_list
-                 ;
-
 rvalue           : IDENTIFIER
                  | NUMBER
                  | STRING
@@ -66,6 +57,37 @@ expr             : rvalue LE rvalue
                  | rvalue GTE rvalue
                  ;
 
+keyword          : WHEN expr
+                 | MUT expr
+                 ;
+
+write_csv        : CSV
+                 | CSV STRING
+                 | CSV STRING COMMA parameter_list
+                 ;
+
+write_md         : MD
+                 | MD STRING
+                 | MD STRING COMMA parameter_list
+                 ;
+
+write_json       : JSON
+                 | JSON STRING
+                 | JSON STRING COMMA parameter_list
+                 ;
+
+write_html       : HTML
+                 | HTML STRING
+                 | HTML STRING COMMA parameter_list
+                 ;
+
+write            : write_csv
+                 | write_md
+                 | write_json
+                 | write_html
+                 ;
+
+
 // Items:
 item             : keyword
                  | expr
@@ -77,6 +99,8 @@ item_list        : // empty
                  ;
 
 program          : item_list
+                 | item_list PIPE write // A write should always be at the end (if it is there).
+								 | write
                  ;
 
 %%

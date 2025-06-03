@@ -47,4 +47,6 @@ func (this *MdWriter) Write() error {
 	return nil
 }
 
-func InitMdWriter(t_label string) (MdWriter, error) {}
+func InitMdWriter(t_label string) (MdWriter, error) {
+	return MdWriter{}, nil
+}

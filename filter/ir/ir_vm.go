@@ -18,29 +18,12 @@ type IrVm struct {
 	Index int
 	Table *td.TableData
 
-	// Contains all registered output writers.
-	OutputWriters []w.Writer
-
-	// The out writer can only have one (for now), and is always the last.
-	OutWriter *w.Writer
+	// The writer is in control of the final output result of the table program.
+	Writer w.Writer
 }
 
 // TODO: The index and tableData should be wrapped in a struct or something.
 // Now we pass them all the time together we should curry this.
-
-// Convert to normal int (watch out with integer slicing).
-func toInt(t_str string) (int, error) {
-	var result int
-
-	integer, err := strconv.ParseInt(t_str, 10, 64)
-	if err != nil {
-		return result, err
-	}
-
-	result = int(integer)
-
-	return result, nil
-}
 
 func (this *IrVm) resolveValue(t_value Value) (string, error) {
 	var value string
@@ -111,18 +94,34 @@ func (this *IrVm) resolveValue(t_value Value) (string, error) {
 	return value, nil
 }
 
+func (this *IrVm) binaryExprResolve(t_lhs Value, t_rhs Value) (string, string, error) {
+	var (
+		lhs string
+		rhs string
+	)
+
+	lhs, err := this.resolveValue(t_lhs)
+	if err != nil {
+		return lhs, rhs, err
+	}
+
+	rhs, err = this.resolveValue(t_rhs)
+	if err != nil {
+		return lhs, rhs, err
+	}
+
+	return lhs, rhs, nil
+}
+
+
 func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool, error) {
 	var result bool
 
+	// TODO: Err if size is != 2.
 	lhs := t_list[0]
 	rhs := t_list[1]
 
-	resLhs, err := this.resolveValue(lhs)
-	if err != nil {
-		return result, err
-	}
-
-	resRhs, err := this.resolveValue(rhs)
+	resLhs, resRhs, err := this.binaryExprResolve(lhs, rhs)
 	if err != nil {
 		return result, err
 	}
@@ -134,28 +133,16 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 	// TODO: Refactor boilerplate.
 	switch t_type {
 	case LessThan:
-		intLhs, err := toInt(resLhs)
-		if err != nil {
-			return result, err
-		}
-
-		intRhs, err := toInt(resRhs)
+		intLhs, intRhs, err := binaryExprToInt(resLhs, resRhs)
 		if err != nil {
 			return result, err
 		}
 
 		result = (intLhs < intRhs)
-
-		u.Logf("LessThan: %d < %d", intLhs, intRhs)
 		break
 
 	case LessThanEqual:
-		intLhs, err := toInt(resLhs)
-		if err != nil {
-			return result, err
-		}
-
-		intRhs, err := toInt(resRhs)
+		intLhs, intRhs, err := binaryExprToInt(resLhs, resRhs)
 		if err != nil {
 			return result, err
 		}
@@ -183,12 +170,7 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 		break
 
 	case GreaterThan:
-		intLhs, err := toInt(resLhs)
-		if err != nil {
-			return result, err
-		}
-
-		intRhs, err := toInt(resRhs)
+		intLhs, intRhs, err := binaryExprToInt(resLhs, resRhs)
 		if err != nil {
 			return result, err
 		}
@@ -197,12 +179,7 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 		break
 
 	case GreaterThanEqual:
-		intLhs, err := toInt(resLhs)
-		if err != nil {
-			return result, err
-		}
-
-		intRhs, err := toInt(resRhs)
+		intLhs, intRhs, err := binaryExprToInt(resLhs, resRhs)
 		if err != nil {
 			return result, err
 		}
@@ -232,10 +209,9 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 	// TODO: Refactor this init.
 	// Set global variables for each execution.
 	// These are similar to AWK.
+	this.VariableStore["NF"] = fmt.Sprintf("%d", headerLength)
 	this.VariableStore["FNR"] = fmt.Sprintf("%d", index)
 	this.VariableStore["NR"] = fmt.Sprintf("%d", rowLength)
-
-	this.VariableStore["HR"] = fmt.Sprintf("%d", headerLength)
 
 	skip := false
 	for _, inst := range instructions {
@@ -263,7 +239,7 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			}
 			break
 
-		case MdBlock:
+		case Md:
 			// Convert to markdown.
 			break
 
@@ -292,7 +268,14 @@ func InitIrVm(t_table *td.TableData) (IrVm, error) {
 
 	// Do init.
 	vm.VariableStore = make(map[string]string)
+
 	vm.Table = t_table
+	writer, err := w.InitCsvWriter("ldefault")
+	if err != nil {
+		return vm, err
+	}
+
+	vm.Writer = &writer
 
 	return vm, nil
 }
