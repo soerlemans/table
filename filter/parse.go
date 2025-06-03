@@ -402,7 +402,11 @@ func expr(t_stream *TokenStream) (InstPtr, error) {
 }
 
 func keyword(t_stream *TokenStream) (InstPtr, error) {
-	var inst InstPtr
+	var (
+		inst InstPtr
+		list ValueListPtr = new(ir.ValueList)
+		err error
+	)
 	defer func() { logUnlessNil("keyword", inst) }()
 
 	// Guard clause.
@@ -413,9 +417,12 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 	token := t_stream.Current()
 	switch token.Type {
 	case WHEN:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
 		}
 
 		when := ir.InitInstructionByList(ir.When, *list)
@@ -424,9 +431,12 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 		break
 
 	case MUT:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
 		}
 
 		mut := ir.InitInstructionByList(ir.Mut, *list)

@@ -112,7 +112,6 @@ func (this *IrVm) binaryExprResolve(t_lhs Value, t_rhs Value) (string, string, e
 	return lhs, rhs, nil
 }
 
-
 func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool, error) {
 	var result bool
 
@@ -239,7 +238,12 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			break
 
 		case Md:
-			// Convert to markdown.
+			md, err := w.InitMdWriter(inst.Label)
+			if err != nil {
+				return err
+			}
+
+			this.Writer = &md
 			break
 
 		default:
