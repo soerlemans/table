@@ -1,5 +1,9 @@
 package ir
 
+import (
+	"strconv"
+)
+
 // Convert to normal int (watch out with integer slicing).
 func toInt(t_str string) (int, error) {
 	var result int

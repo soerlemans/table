@@ -32,6 +32,40 @@ const (
 	Html
 )
 
+func (t InstructionType) String() string {
+	switch t {
+	case LessThan:
+		return "LessThan"
+	case LessThanEqual:
+		return "LessThanEqual"
+	case Equal:
+		return "Equal"
+	case NotEqual:
+		return "NotEqual"
+	case GreaterThan:
+		return "GreaterThan"
+	case GreaterThanEqual:
+		return "GreaterThanEqual"
+
+	case When:
+		return "When"
+	case Mut:
+		return "Mut"
+
+	case Csv:
+		return "Csv"
+	case Md:
+		return "Md"
+	case Json:
+		return "Json"
+	case Html:
+		return "Html"
+	}
+
+	// Optionally return an error?
+	return "<Unknown InstructionType>"
+}
+
 type ValueType int
 
 const (
@@ -44,9 +78,33 @@ const (
 	FieldByPosition
 )
 
+func (t ValueType) String() string {
+	switch t {
+	case Identifier:
+		return "Identifier"
+
+	case String:
+		return "String"
+	case Number:
+		return "Number"
+
+	case FieldByName:
+		return "FieldByName"
+	case FieldByPosition:
+		return "FieldByPosition"
+	}
+
+	// Optionally return an error?
+	return "<Unknown ValueType>"
+}
+
 type Value struct {
 	Type  ValueType
 	Value string
+}
+
+func (this *Value) String() string {
+	return fmt.Sprintf("%s", this.Value)
 }
 
 // TODO:
@@ -54,6 +112,10 @@ type Instruction struct {
 	Label    string
 	Type     InstructionType
 	Operands ValueList
+}
+
+func (this *Instruction) String() string {
+	return fmt.Sprintf("%s: %s <= %v", this.Label, this.Type, this.Operands)
 }
 
 // Initialization:

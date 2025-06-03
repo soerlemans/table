@@ -2,7 +2,6 @@ package ir
 
 import (
 	"fmt"
-	"strconv"
 
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"

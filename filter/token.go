@@ -120,7 +120,7 @@ func (t TokenType) String() string {
 	}
 
 	// Optionally return an error?
-	return "Unknown TokenType"
+	return "<Unknown TokenType>"
 }
 
 // TODO: Document.

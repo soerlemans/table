@@ -546,5 +546,7 @@ func Parse(t_stream *TokenStream) (InstListPtr, error) {
 		return list, err
 	}
 
+	u.Logf("Instructions: %v", *list)
+
 	return list, nil
 }
