@@ -18,6 +18,8 @@ type MdWriter struct {
 	ColWidth map[int]int
 	Headers  td.TableDataRow
 
+	ColMask map[int]bool
+
 	Rows []td.TableDataRow
 }
 
@@ -40,6 +42,34 @@ func (this *MdWriter) SetHeaders(t_headers td.TableDataRow) {
 	this.Headers = t_headers
 
 	this.updateColWidth(t_headers)
+}
+
+// Mark columns to print during write.
+func (this *MdWriter) SetMask(t_mask []int) {
+	this.ClearMask()
+
+	// TODO: Error handle non existent column indexes.
+	for _, value := range t_mask {
+		this.ColMask[value] = true
+	}
+}
+
+func (this *MdWriter) ClearMask() {
+	// Clear by assigning a new one.
+	this.ColMask = make(map[int]bool)
+}
+
+func (this *MdWriter) ColumnMasked(t_colIndex int) bool {
+	// Guard clause (the mask has no elements then print everything).
+	// As we should always print atleast one column.
+	if len(this.ColMask) == 0 {
+		return true
+	}
+
+	// We use the map as a set.
+	_, ok := this.ColMask[t_colIndex]
+
+	return ok
 }
 
 func (this *MdWriter) SetRows(t_rows []td.TableDataRow) {
@@ -68,7 +98,10 @@ func (this *MdWriter) printRow(t_row td.TableDataRow) error {
 			// TODO: Return err.
 		}
 
-		fmt.Printf("| %-*s ", colWidth, cell)
+		// Check if the column is selected.
+		if this.ColumnMasked(index) {
+			fmt.Printf("| %-*s ", colWidth, cell)
+		}
 	}
 	fmt.Println("|")
 
@@ -86,8 +119,11 @@ func (this *MdWriter) printTableHeaderSep() error {
 			// TODO: Return err.
 		}
 
-		colSep := strings.Repeat("-", colWidth)
-		fmt.Printf("| %s ", colSep)
+		// Check if the column is selected.
+		if this.ColumnMasked(index) {
+			colSep := strings.Repeat("-", colWidth)
+			fmt.Printf("| %s ", colSep)
+		}
 	}
 	fmt.Println("|")
 
@@ -129,8 +165,9 @@ func (this *MdWriter) Write() error {
 func InitMdWriter(t_label string) (MdWriter, error) {
 	writer := MdWriter{}
 
-	writer.ColWidth = make(map[int]int)
 	writer.Label = t_label
+	writer.ColWidth = make(map[int]int)
+	writer.ColMask = make(map[int]bool)
 
 	return writer, nil
 }

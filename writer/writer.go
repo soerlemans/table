@@ -11,6 +11,12 @@ type Writer interface {
 	GetLabel() string
 
 	SetHeaders(headers td.TableDataRow)
+
+	// Determine which columns to mask, this determines if they will be printed.
+	SetMask(t_filter []int)
+	ClearMask()
+	ColumnMasked(t_colIndex int) bool
+
 	SetRows(t_rows []td.TableDataRow)
 	GetRows() []td.TableDataRow
 

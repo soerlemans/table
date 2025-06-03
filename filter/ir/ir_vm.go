@@ -93,6 +93,21 @@ func (this *IrVm) resolveValue(t_value Value) (string, error) {
 	return value, nil
 }
 
+func (this *IrVm) resolveValues(t_values ValueList) ([]string, error) {
+	var slice []string
+
+	for _, value := range t_values {
+		str, err := this.resolveValue(value)
+		if err != nil {
+			return slice, err
+		}
+
+		slice = append(slice, str)
+	}
+
+	return slice, nil
+}
+
 func (this *IrVm) binaryExprResolve(t_lhs Value, t_rhs Value) (string, string, error) {
 	var (
 		lhs string
@@ -240,12 +255,26 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 				return err
 			}
 
+			// TODO: Write a copy/switch function.
+			// Or maybe use a pointer for the internal data.
 			// Update the headers.
 			md.SetHeaders(this.Table.Headers)
 
 			// Copy over the old registered rows.
 			rows := this.Writer.GetRows()
 			md.SetRows(rows)
+
+			colNames, err := this.resolveValues(inst.Operands)
+			if err != nil {
+				return err
+			}
+
+			indices, err := this.Table.ColNamesToIndices(colNames)
+			if err != nil {
+				return err
+			}
+
+			md.SetMask(indices)
 
 			this.Writer = &md
 			break
