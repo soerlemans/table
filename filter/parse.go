@@ -579,7 +579,6 @@ func Parse(t_stream *TokenStream) (InstListPtr, error) {
 	u.Logf("BEGIN PARSING.")
 	defer u.Logf("END PARSING.")
 
-	// If no token were found, assume regular csv output.
 	if t_stream.Len() > 0 {
 		// If we have received tokens start parsing.
 		list, err := program(t_stream)
@@ -587,11 +586,13 @@ func Parse(t_stream *TokenStream) (InstListPtr, error) {
 			return list, err
 		}
 	} else {
+		// If no token were found, assume default query (csv output).
 		vlist := new(ir.ValueList)
 		csv := ir.InitInstructionByList(ir.Csv, *vlist)
 
 		*list = append(*list, csv)
-		u.Logln(*list)
+
+		u.Logln("No tokens found, using default csv output writer.")
 	}
 
 	u.Logf("Instructions: %v", *list)
