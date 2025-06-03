@@ -115,7 +115,7 @@ type Instruction struct {
 }
 
 func (this *Instruction) String() string {
-	return fmt.Sprintf("%s: %s <= %v", this.Label, this.Type, this.Operands)
+	return fmt.Sprintf("%s : %s <= %v", this.Label, this.Type, this.Operands)
 }
 
 // Initialization:
@@ -130,7 +130,7 @@ func InitInstruction(t_type InstructionType, t_operands ...Value) Instruction {
 var labelCount int
 
 func InitInstructionByList(t_type InstructionType, t_operands ValueList) Instruction {
-	label := fmt.Sprintf("%i%d", labelCount)
+	label := fmt.Sprintf("l%d", labelCount)
 	labelCount++
 
 	return Instruction{label, t_type, t_operands}

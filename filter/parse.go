@@ -55,7 +55,7 @@ func errWriteDirective(t_location string) error {
 // Should be used in conjunction with defer.
 func logUnlessNil[T any](t_preabmle string, t_ptr *T) {
 	if t_ptr != nil {
-		u.Logf("Found %s: %T", t_preabmle, *t_ptr)
+		u.Logf("Found %s: %v", t_preabmle, *t_ptr)
 	}
 }
 
@@ -88,7 +88,18 @@ func parseList(t_stream *TokenStream, t_fn parseFnInst, t_sep TokenType) (InstLi
 			token := t_stream.Current()
 
 			// If no intermediary pipe symbol was found we should quit.
-			if token.Type != t_sep {
+			if token.Type == t_sep {
+				u.Logf("Found sep: %s", token.Type)
+
+				// Skip past the separator.
+				t_stream.Next()
+
+				// If after the separator we get an eos this unexpected.
+				if t_stream.Eos() {
+					return list, errUnexpectedEos("parseList")
+					break
+				}
+			} else {
 				break
 			}
 		}
@@ -277,14 +288,12 @@ func rvalue(t_stream *TokenStream) (ValuePtr, error) {
 		break
 
 	default:
-		// TODO: figure this out.
-		col, err := column(t_stream)
-		if err != nil {
+		if col, err := column(t_stream); validPtr(col, err) {
+			value = col
+			t_stream.Next()
+		} else if err != nil {
 			return value, err
 		}
-
-		value = col
-		t_stream.Next()
 		break
 	}
 
@@ -434,8 +443,13 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 }
 
 func write(t_stream *TokenStream) (InstPtr, error) {
-	var inst InstPtr
-	defer func() { logUnlessNil("writer", inst) }()
+	var (
+		inst InstPtr
+		list ValueListPtr = new(ir.ValueList)
+		err  error
+	)
+
+	defer func() { logUnlessNil("write", inst) }()
 
 	// Guard clause.
 	if t_stream.Eos() {
@@ -445,9 +459,12 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 	token := t_stream.Current()
 	switch token.Type {
 	case CSV:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
 		}
 
 		out := ir.InitInstructionByList(ir.Csv, *list)
@@ -456,9 +473,12 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 		break
 
 	case MD:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
 		}
 
 		md := ir.InitInstructionByList(ir.Md, *list)
@@ -467,9 +487,12 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 		break
 
 	case JSON:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
 		}
 
 		json := ir.InitInstructionByList(ir.Json, *list)
@@ -478,9 +501,12 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 		break
 
 	case HTML:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
 		}
 
 		html := ir.InitInstructionByList(ir.Html, *list)
