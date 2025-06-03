@@ -31,6 +31,8 @@ func (Arguments) Version() string {
 // Globals:
 const (
 	VERSION = "0.1"
+
+	DEFAULT_PROGRAM_TEXT = "csv"
 )
 
 // Functions:
@@ -68,7 +70,9 @@ func initArgs() (Arguments, error) {
 
 	// Do log this, for debugging purposes.
 	if len(args.ProgramText) == 0 {
-		util.Logf("No program text given")
+		util.Logf("No program text given using default: %s", DEFAULT_PROGRAM_TEXT)
+
+		args.ProgramText = DEFAULT_PROGRAM_TEXT
 	}
 
 	// If no input files are supplied check stdin.
