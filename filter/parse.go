@@ -405,7 +405,7 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 	var (
 		inst InstPtr
 		list ValueListPtr = new(ir.ValueList)
-		err error
+		err  error
 	)
 	defer func() { logUnlessNil("keyword", inst) }()
 
@@ -477,9 +477,9 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 			}
 		}
 
-		out := ir.InitInstructionByList(ir.Csv, *list)
+		csv := ir.InitInstructionByList(ir.Csv, *list)
 
-		inst = &out
+		inst = &csv
 		break
 
 	case MD:
@@ -574,12 +574,24 @@ func program(t_stream *TokenStream) (InstListPtr, error) {
 
 // Source code to parse.
 func Parse(t_stream *TokenStream) (InstListPtr, error) {
+	list := new(ir.InstructionList)
+
 	u.Logf("BEGIN PARSING.")
 	defer u.Logf("END PARSING.")
 
-	list, err := program(t_stream)
-	if err != nil {
-		return list, err
+	// If no token were found, assume regular csv output.
+	if t_stream.Len() > 0 {
+		// If we have received tokens start parsing.
+		list, err := program(t_stream)
+		if err != nil {
+			return list, err
+		}
+	} else {
+		vlist := new(ir.ValueList)
+		csv := ir.InitInstructionByList(ir.Csv, *vlist)
+
+		*list = append(*list, csv)
+		u.Logln(*list)
 	}
 
 	u.Logf("Instructions: %v", *list)

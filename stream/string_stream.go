@@ -46,6 +46,10 @@ func (this *StringStream) Eos() bool {
 	return this.Index >= len(*this.View)
 }
 
+func (this *StringStream) Len() int {
+	return len(*this.View)
+}
+
 func InitStringStream(t_view *string) StringStream {
 	return StringStream{t_view, 0}
 }

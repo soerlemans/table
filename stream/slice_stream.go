@@ -40,12 +40,7 @@ func (this *SliceStream[T]) Peek() (T, bool) {
 
 // Append to the stream.
 func (this *SliceStream[T]) Append(t_value T) {
-	// Account for if the stream no elems yet.
-	if this.View == nil {
-		this.View = &[]T{t_value}
-	} else {
-		*this.View = append(*this.View, t_value)
-	}
+	*this.View = append(*this.View, t_value)
 }
 
 // Short for End Of SliceStream[T].
@@ -53,6 +48,17 @@ func (this *SliceStream[T]) Eos() bool {
 	return this.Index >= len(*this.View)
 }
 
+func (this *SliceStream[T]) Len() int {
+	return len(*this.View)
+}
+
 func InitSliceStream[T any](t_view *[]T) SliceStream[T] {
 	return SliceStream[T]{t_view, 0}
+}
+
+func InitSliceStreamEmpty[T any]() SliceStream[T] {
+	// Account for if the stream no elems yet.
+	placeholder := []T{}
+
+	return SliceStream[T]{&placeholder, 0}
 }

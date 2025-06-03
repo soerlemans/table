@@ -31,8 +31,6 @@ func (Arguments) Version() string {
 // Globals:
 const (
 	VERSION = "0.1"
-
-	DEFAULT_FILTER = "."
 )
 
 // Functions:
@@ -68,10 +66,9 @@ func initArgs() (Arguments, error) {
 		return args, err
 	}
 
+	// Do log this, for debugging purposes.
 	if len(args.ProgramText) == 0 {
-		defaultFilter := util.Quote(DEFAULT_FILTER)
-		util.Logf("No program text given, apply default: %s", defaultFilter)
-		args.ProgramText = DEFAULT_FILTER
+		util.Logf("No program text given")
 	}
 
 	// If no input files are supplied check stdin.
