@@ -103,14 +103,15 @@ func parseList(t_stream *TokenStream, t_fn parseFnInst, t_sep TokenType) (InstLi
 				break
 			}
 		}
-
 	}
 
 	return list, nil
 }
 
+// TODO: Create generic function which unifies ParseList and ParseValueList.
 func parseValueList(t_stream *TokenStream, t_fn parseFnValue, t_sep TokenType) (ValueListPtr, error) {
 	var list ValueListPtr = new(ir.ValueList)
+	defer func() { logUnlessNil("parseValueList", list) }()
 
 	for {
 		inst, err := t_fn(t_stream)
@@ -130,11 +131,21 @@ func parseValueList(t_stream *TokenStream, t_fn parseFnValue, t_sep TokenType) (
 			token := t_stream.Current()
 
 			// If no intermediary pipe symbol was found we should quit.
-			if token.Type != t_sep {
+			if token.Type == t_sep {
+				u.Logf("Found sep: %s", token.Type)
+
+				// Skip past the separator.
+				t_stream.Next()
+
+				// If after the separator we get an eos this unexpected.
+				if t_stream.Eos() {
+					return list, errUnexpectedEos("parseList")
+					break
+				}
+			} else {
 				break
 			}
 		}
-
 	}
 
 	return list, nil
