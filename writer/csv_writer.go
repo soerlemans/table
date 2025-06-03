@@ -17,6 +17,14 @@ func (this *CsvWriter) SetHeaders(t_headers td.TableDataRow) {
 	this.Headers = t_headers
 }
 
+func (this *CsvWriter) SetRows(t_rows []td.TableDataRow) {
+	this.Rows = t_rows
+}
+
+func (this *CsvWriter) GetRows() []td.TableDataRow {
+	return this.Rows
+}
+
 func (this *CsvWriter) AddRow(t_row td.TableDataRow) {
 	this.Rows = append(this.Rows, t_row)
 }

@@ -195,11 +195,6 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 	index := this.Index
 	table := this.Table
 
-	out, err := table.RowAsStr(index)
-	if err != nil {
-		return err
-	}
-
 	// Extract required global vars.
 	rowLength := table.RowLength()
 	headerLength := table.HeaderLength()
@@ -243,6 +238,13 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 				return err
 			}
 
+			// Update the headers.
+			md.SetHeaders(this.Table.Headers)
+
+			// Copy over the old registered rows.
+			rows := this.Writer.GetRows()
+			md.SetRows(rows)
+
 			this.Writer = &md
 			break
 
@@ -257,12 +259,21 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 		}
 	}
 
-	// Only print if we should not skip.
+	// Only add the row to output if the current line isnt skipped.
 	if !skip {
-		fmt.Println(out)
+		row, err := table.GetRow(index)
+		if err != nil {
+			return err
+		}
+
+		this.Writer.AddRow(row)
 	}
 
 	return nil
+}
+
+func (this *IrVm) Write() error {
+	return this.Writer.Write()
 }
 
 func InitIrVm(t_table *td.TableData) (IrVm, error) {
@@ -279,6 +290,7 @@ func InitIrVm(t_table *td.TableData) (IrVm, error) {
 	}
 
 	vm.Writer = &writer
+	vm.Writer.SetHeaders(vm.Table.Headers)
 
 	return vm, nil
 }

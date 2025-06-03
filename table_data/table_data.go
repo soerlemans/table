@@ -80,6 +80,26 @@ func (this *TableData) CellByColName(t_row int, t_name string) (string, error) {
 	return this.CellByIndices(t_row, t_col)
 }
 
+func (this *TableData) GetRow(t_row int) (TableDataRow, error) {
+	var row TableDataRow
+	defer func() { u.Logf("GetRow: %s.", u.Quote(row)) }()
+
+	if t_row < this.RowLength() {
+		rowArray := this.RowsData[t_row]
+
+		// Append to the line string, for each cell.
+		for _, cell := range rowArray {
+			row = append(row, cell)
+		}
+
+	} else {
+		err := u.Errorf("Row index is out of bounds (%d).", t_row)
+		return row, err
+	}
+
+	return row, nil
+}
+
 func (this *TableData) RowAsStr(t_row int) (string, error) {
 	var row string
 	defer func() { u.Logf("Row2Str: %s.", u.Quote(row)) }()

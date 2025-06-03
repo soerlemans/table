@@ -50,5 +50,5 @@ func Process(t_ctx ProcessContext) error {
 		vm.ExecIr(*inst)
 	}
 
-	return nil
+	return vm.Write()
 }
