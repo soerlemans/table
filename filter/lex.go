@@ -52,11 +52,15 @@ var multiRuneSymbols = map[string]TokenType{
 
 // Keywords mapped to TokenType.
 var Keywords = map[string]TokenType{
+	// Keywords:
 	"when": WHEN,
 	"mut":  MUT,
-	"out":  OUT,
+
+	// Writer specifications:
+	"csv":  CSV,
 	"md":   MD,
 	"json": JSON,
+	"html": HTML,
 }
 
 // Errors:

@@ -23,12 +23,48 @@ const (
 	GreaterThan
 	GreaterThanEqual
 
-	WhenBlock
-	MutBlock
-	OutBlock
-	MdBlock
-	JsonBlock
+	When
+	Mut
+
+	Csv
+	Md
+	Json
+	Html
 )
+
+func (t InstructionType) String() string {
+	switch t {
+	case LessThan:
+		return "LessThan"
+	case LessThanEqual:
+		return "LessThanEqual"
+	case Equal:
+		return "Equal"
+	case NotEqual:
+		return "NotEqual"
+	case GreaterThan:
+		return "GreaterThan"
+	case GreaterThanEqual:
+		return "GreaterThanEqual"
+
+	case When:
+		return "When"
+	case Mut:
+		return "Mut"
+
+	case Csv:
+		return "Csv"
+	case Md:
+		return "Md"
+	case Json:
+		return "Json"
+	case Html:
+		return "Html"
+	}
+
+	// Optionally return an error?
+	return "<Unknown InstructionType>"
+}
 
 type ValueType int
 
@@ -42,9 +78,33 @@ const (
 	FieldByPosition
 )
 
+func (t ValueType) String() string {
+	switch t {
+	case Identifier:
+		return "Identifier"
+
+	case String:
+		return "String"
+	case Number:
+		return "Number"
+
+	case FieldByName:
+		return "FieldByName"
+	case FieldByPosition:
+		return "FieldByPosition"
+	}
+
+	// Optionally return an error?
+	return "<Unknown ValueType>"
+}
+
 type Value struct {
 	Type  ValueType
 	Value string
+}
+
+func (this *Value) String() string {
+	return fmt.Sprintf("%s", this.Value)
 }
 
 // TODO:
@@ -52,6 +112,10 @@ type Instruction struct {
 	Label    string
 	Type     InstructionType
 	Operands ValueList
+}
+
+func (this *Instruction) String() string {
+	return fmt.Sprintf("%s : %s <= %v", this.Label, this.Type, this.Operands)
 }
 
 // Initialization:
@@ -66,7 +130,7 @@ func InitInstruction(t_type InstructionType, t_operands ...Value) Instruction {
 var labelCount int
 
 func InitInstructionByList(t_type InstructionType, t_operands ValueList) Instruction {
-	label := fmt.Sprintf("%i%d", labelCount)
+	label := fmt.Sprintf("l%d", labelCount)
 	labelCount++
 
 	return Instruction{label, t_type, t_operands}

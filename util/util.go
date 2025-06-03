@@ -109,7 +109,7 @@ func EtcStruct[T any, W EtcWidthType](t_struct T, t_count W) string {
 
 // Fail unconditionally.
 func Fail(t_err error) {
-	log.Fatalln(t_err)
+	log.Fatalln("Error:", t_err)
 
 	os.Exit(EXIT_CODE_ERR)
 }

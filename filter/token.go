@@ -57,13 +57,16 @@ const (
 
 	// Output specifiers:
 	// Selects which columns to output (optionally specify order)).
-	OUT
+	CSV
 
 	// This operation will export the surviving rows to a markdown table.
 	MD
 
 	// This operation will export the surviving rows to JSON.
 	JSON
+
+	// This operation will export the surviving rows to HTML.
+	HTML
 )
 
 func (t TokenType) String() string {
@@ -106,16 +109,18 @@ func (t TokenType) String() string {
 		return "when"
 	case MUT:
 		return "mut"
-	case OUT:
-		return "out"
+	case CSV:
+		return "csv"
 	case MD:
 		return "md"
 	case JSON:
 		return "json"
+	case HTML:
+		return "html"
 	}
 
 	// Optionally return an error?
-	return "Unknown TokenType"
+	return "<Unknown TokenType>"
 }
 
 // TODO: Document.

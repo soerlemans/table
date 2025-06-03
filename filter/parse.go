@@ -15,6 +15,7 @@ var (
 	ErrUnexpectedEos    = errors.New("Unexpected end of stream")
 	ErrExpected         = errors.New("Expected")
 	ErrUnsupported      = errors.New("Unsupported")
+	ErrWriteDirective   = errors.New("No further input allowed after a write directive")
 )
 
 // Import these as we use them frequently.
@@ -47,10 +48,14 @@ func errUnexpectedEos(t_location string) error {
 	return fmt.Errorf("Unexpected end of stream in %s (%w)", t_location, ErrUnexpectedEos)
 }
 
+func errWriteDirective(t_location string) error {
+	return fmt.Errorf("After a write directive end of stream is expected in %s (%w)", t_location, ErrWriteDirective)
+}
+
 // Should be used in conjunction with defer.
 func logUnlessNil[T any](t_preabmle string, t_ptr *T) {
 	if t_ptr != nil {
-		u.Logf("Found %s: %T", t_preabmle, *t_ptr)
+		u.Logf("Found %s: %v", t_preabmle, *t_ptr)
 	}
 }
 
@@ -83,7 +88,18 @@ func parseList(t_stream *TokenStream, t_fn parseFnInst, t_sep TokenType) (InstLi
 			token := t_stream.Current()
 
 			// If no intermediary pipe symbol was found we should quit.
-			if token.Type != t_sep {
+			if token.Type == t_sep {
+				u.Logf("Found sep: %s", token.Type)
+
+				// Skip past the separator.
+				t_stream.Next()
+
+				// If after the separator we get an eos this unexpected.
+				if t_stream.Eos() {
+					return list, errUnexpectedEos("parseList")
+					break
+				}
+			} else {
 				break
 			}
 		}
@@ -237,80 +253,6 @@ func parameterList(t_stream *TokenStream) (ValueListPtr, error) {
 }
 
 // Ast:
-func keyword(t_stream *TokenStream) (InstPtr, error) {
-	var inst InstPtr
-	defer func() { logUnlessNil("keyword", inst) }()
-
-	// Guard clause.
-	if t_stream.Eos() {
-		return inst, nil
-	}
-
-	token := t_stream.Current()
-	switch token.Type {
-	case WHEN:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
-		}
-
-		when := ir.InitInstructionByList(ir.WhenBlock, *list)
-
-		inst = &when
-		break
-
-	case MUT:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
-		}
-
-		mut := ir.InitInstructionByList(ir.MutBlock, *list)
-
-		inst = &mut
-		break
-
-	case OUT:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
-		}
-
-		out := ir.InitInstructionByList(ir.OutBlock, *list)
-
-		inst = &out
-		break
-
-	case MD:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
-		}
-
-		md := ir.InitInstructionByList(ir.MdBlock, *list)
-
-		inst = &md
-		break
-
-	case JSON:
-		list, err := parameterList(t_stream)
-		if err != nil {
-			return inst, err
-		}
-
-		json := ir.InitInstructionByList(ir.JsonBlock, *list)
-
-		inst = &json
-		break
-
-	default:
-		// No error this is fine, just not a keyword.
-		break
-	}
-
-	return inst, nil
-}
-
 func rvalue(t_stream *TokenStream) (ValuePtr, error) {
 	var value ValuePtr
 	defer func() { logUnlessNil("rvalue", value) }()
@@ -346,14 +288,12 @@ func rvalue(t_stream *TokenStream) (ValuePtr, error) {
 		break
 
 	default:
-		// TODO: figure this out.
-		col, err := column(t_stream)
-		if err != nil {
+		if col, err := column(t_stream); validPtr(col, err) {
+			value = col
+			t_stream.Next()
+		} else if err != nil {
 			return value, err
 		}
-
-		value = col
-		t_stream.Next()
 		break
 	}
 
@@ -461,6 +401,127 @@ func expr(t_stream *TokenStream) (InstPtr, error) {
 	return inst, nil
 }
 
+func keyword(t_stream *TokenStream) (InstPtr, error) {
+	var inst InstPtr
+	defer func() { logUnlessNil("keyword", inst) }()
+
+	// Guard clause.
+	if t_stream.Eos() {
+		return inst, nil
+	}
+
+	token := t_stream.Current()
+	switch token.Type {
+	case WHEN:
+		list, err := parameterList(t_stream)
+		if err != nil {
+			return inst, err
+		}
+
+		when := ir.InitInstructionByList(ir.When, *list)
+
+		inst = &when
+		break
+
+	case MUT:
+		list, err := parameterList(t_stream)
+		if err != nil {
+			return inst, err
+		}
+
+		mut := ir.InitInstructionByList(ir.Mut, *list)
+
+		inst = &mut
+		break
+
+	default:
+		// No error this is fine, just not a keyword.
+		break
+	}
+
+	return inst, nil
+}
+
+func write(t_stream *TokenStream) (InstPtr, error) {
+	var (
+		inst InstPtr
+		list ValueListPtr = new(ir.ValueList)
+		err  error
+	)
+
+	defer func() { logUnlessNil("write", inst) }()
+
+	// Guard clause.
+	if t_stream.Eos() {
+		return inst, nil
+	}
+
+	token := t_stream.Current()
+	switch token.Type {
+	case CSV:
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
+		}
+
+		out := ir.InitInstructionByList(ir.Csv, *list)
+
+		inst = &out
+		break
+
+	case MD:
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
+		}
+
+		md := ir.InitInstructionByList(ir.Md, *list)
+
+		inst = &md
+		break
+
+	case JSON:
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
+		}
+
+		json := ir.InitInstructionByList(ir.Json, *list)
+
+		inst = &json
+		break
+
+	case HTML:
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
+		}
+
+		html := ir.InitInstructionByList(ir.Html, *list)
+
+		inst = &html
+		break
+
+	default:
+		// No error this is fine, just not a keyword.
+		break
+	}
+
+	return inst, nil
+}
+
 func item(t_stream *TokenStream) (InstPtr, error) {
 	var inst InstPtr
 	defer func() { logUnlessNil("item", inst) }()
@@ -471,9 +532,20 @@ func item(t_stream *TokenStream) (InstPtr, error) {
 	} else if err != nil {
 		return inst, err
 
-		// Check for an epxression.
+		// Check for an expression.
 	} else if exprPtr, err := expr(t_stream); validPtr(exprPtr, err) {
 		inst = exprPtr
+	} else if err != nil {
+		return inst, err
+
+		// Check for a writer specification.
+	} else if writePtr, err := write(t_stream); validPtr(writePtr, err) {
+		inst = writePtr
+
+		// If a writer is successfully parsed we should be at the end of stream.
+		if !t_stream.Eos() {
+			return inst, errWriteDirective("item")
+		}
 	} else if err != nil {
 		return inst, err
 	}
@@ -499,6 +571,8 @@ func Parse(t_stream *TokenStream) (InstListPtr, error) {
 	if err != nil {
 		return list, err
 	}
+
+	u.Logf("Instructions: %v", *list)
 
 	return list, nil
 }
