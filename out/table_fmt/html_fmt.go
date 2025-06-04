@@ -11,12 +11,12 @@ type HtmlFmt struct {
 	BaseTableFmt
 }
 
-func (this *HtmlFmt) printRow(t_row td.TableDataRow) error {
+func (this *HtmlFmt) printRow(t_tag string, t_row td.TableDataRow) error {
 	fmt.Println("<tr>")
 	for index, cell := range t_row {
 		// Check if the column is selected.
 		if this.ColumnMasked(index) {
-			fmt.Printf("<td> %s </td>\n", cell)
+			fmt.Printf("<%s> %s </%s>\n", t_tag, cell, t_tag)
 		}
 	}
 	fmt.Println("</tr>")
@@ -26,7 +26,7 @@ func (this *HtmlFmt) printRow(t_row td.TableDataRow) error {
 
 func (this *HtmlFmt) printTableHeader() error {
 	fmt.Println("<thead>")
-	err := this.printRow(this.Headers)
+	err := this.printRow("td", this.Headers)
 	fmt.Println("</thead>")
 
 	return err
@@ -36,7 +36,7 @@ func (this *HtmlFmt) printTableRows() error {
 	// Print per row.
 	for _, row := range this.Rows {
 		// Print cells of the row.
-		err := this.printRow(row)
+		err := this.printRow("tr", row)
 		if err != nil {
 			return err
 		}
