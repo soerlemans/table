@@ -2,7 +2,6 @@ package table_fmt
 
 import (
 	"fmt"
-	// "strings"
 
 	td "github.com/soerlemans/table/table_data"
 )
