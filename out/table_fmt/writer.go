@@ -1,4 +1,4 @@
-package writer
+package table_fmt
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ const (
 	mdColSep = '|'
 )
 
-type MdWriter struct {
+type MdFmt struct {
 	Label string
 
 	// We need to calculate the max column width for every entry..
@@ -23,7 +23,7 @@ type MdWriter struct {
 	Rows []td.TableDataRow
 }
 
-func (this *MdWriter) updateColWidth(t_row td.TableDataRow) {
+func (this *MdFmt) updateColWidth(t_row td.TableDataRow) {
 	for i, cell := range t_row {
 		cellWidth := len(cell)
 
@@ -34,18 +34,18 @@ func (this *MdWriter) updateColWidth(t_row td.TableDataRow) {
 	}
 }
 
-func (this *MdWriter) GetLabel() string {
+func (this *MdFmt) GetLabel() string {
 	return this.Label
 }
 
-func (this *MdWriter) SetHeaders(t_headers td.TableDataRow) {
+func (this *MdFmt) SetHeaders(t_headers td.TableDataRow) {
 	this.Headers = t_headers
 
 	this.updateColWidth(t_headers)
 }
 
 // Mark columns to print during write.
-func (this *MdWriter) SetMask(t_mask []int) {
+func (this *MdFmt) SetMask(t_mask []int) {
 	this.ClearMask()
 
 	// TODO: Error handle non existent column indexes.
@@ -54,12 +54,12 @@ func (this *MdWriter) SetMask(t_mask []int) {
 	}
 }
 
-func (this *MdWriter) ClearMask() {
+func (this *MdFmt) ClearMask() {
 	// Clear by assigning a new one.
 	this.ColMask = make(map[int]bool)
 }
 
-func (this *MdWriter) ColumnMasked(t_colIndex int) bool {
+func (this *MdFmt) ColumnMasked(t_colIndex int) bool {
 	// Guard clause (the mask has no elements then print everything).
 	// As we should always print atleast one column.
 	if len(this.ColMask) == 0 {
@@ -72,7 +72,7 @@ func (this *MdWriter) ColumnMasked(t_colIndex int) bool {
 	return ok
 }
 
-func (this *MdWriter) SetRows(t_rows []td.TableDataRow) {
+func (this *MdFmt) SetRows(t_rows []td.TableDataRow) {
 	this.Rows = t_rows
 
 	// We need to update the mex column width for every line now.
@@ -81,17 +81,17 @@ func (this *MdWriter) SetRows(t_rows []td.TableDataRow) {
 	}
 }
 
-func (this *MdWriter) GetRows() []td.TableDataRow {
+func (this *MdFmt) GetRows() []td.TableDataRow {
 	return this.Rows
 }
 
-func (this *MdWriter) AddRow(t_row td.TableDataRow) {
+func (this *MdFmt) AddRow(t_row td.TableDataRow) {
 	this.Rows = append(this.Rows, t_row)
 
 	this.updateColWidth(t_row)
 }
 
-func (this *MdWriter) printRow(t_row td.TableDataRow) error {
+func (this *MdFmt) printRow(t_row td.TableDataRow) error {
 	for index, cell := range t_row {
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
@@ -108,11 +108,11 @@ func (this *MdWriter) printRow(t_row td.TableDataRow) error {
 	return nil
 }
 
-func (this *MdWriter) printTableHeader() error {
+func (this *MdFmt) printTableHeader() error {
 	return this.printRow(this.Headers)
 }
 
-func (this *MdWriter) printTableHeaderSep() error {
+func (this *MdFmt) printTableHeaderSep() error {
 	for index, _ := range this.Headers {
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
@@ -130,7 +130,7 @@ func (this *MdWriter) printTableHeaderSep() error {
 	return nil
 }
 
-func (this *MdWriter) printTableRows() error {
+func (this *MdFmt) printTableRows() error {
 	// Print per row.
 	for _, row := range this.Rows {
 		// Print cells of the row.
@@ -143,7 +143,7 @@ func (this *MdWriter) printTableRows() error {
 	return nil
 }
 
-func (this *MdWriter) Write() error {
+func (this *MdFmt) Write() error {
 	err := this.printTableHeader()
 	if err != nil {
 		return err
@@ -162,8 +162,8 @@ func (this *MdWriter) Write() error {
 	return nil
 }
 
-func InitMdWriter(t_label string) (MdWriter, error) {
-	writer := MdWriter{}
+func InitMdFmt(t_label string) (MdFmt, error) {
+	writer := MdFmt{}
 
 	writer.Label = t_label
 	writer.ColWidth = make(map[int]int)

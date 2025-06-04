@@ -1,4 +1,4 @@
-package writer
+package table_fmt
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	td "github.com/soerlemans/table/table_data"
 )
 
-type CsvWriter struct {
+type CsvFmt struct {
 	Label string
 
 	// We need to calculate the max column width for every entry..
@@ -17,7 +17,7 @@ type CsvWriter struct {
 	Rows []td.TableDataRow
 }
 
-func (this *CsvWriter) printRow(t_row td.TableDataRow) error {
+func (this *CsvFmt) printRow(t_row td.TableDataRow) error {
 	var sep string
 	for index, cell := range t_row {
 		if this.ColumnMasked(index) {
@@ -31,11 +31,11 @@ func (this *CsvWriter) printRow(t_row td.TableDataRow) error {
 	return nil
 }
 
-func (this *CsvWriter) printTableHeader() error {
+func (this *CsvFmt) printTableHeader() error {
 	return this.printRow(this.Headers)
 }
 
-func (this *CsvWriter) printTableRows() error {
+func (this *CsvFmt) printTableRows() error {
 	// Print per row.
 	for _, row := range this.Rows {
 		// Print cells of the row.
@@ -48,16 +48,16 @@ func (this *CsvWriter) printTableRows() error {
 	return nil
 }
 
-func (this *CsvWriter) GetLabel() string {
+func (this *CsvFmt) GetLabel() string {
 	return this.Label
 }
 
-func (this *CsvWriter) SetHeaders(t_headers td.TableDataRow) {
+func (this *CsvFmt) SetHeaders(t_headers td.TableDataRow) {
 	this.Headers = t_headers
 }
 
 // Mark columns to print during write.
-func (this *CsvWriter) SetMask(t_mask []int) {
+func (this *CsvFmt) SetMask(t_mask []int) {
 	this.ClearMask()
 
 	// TODO: Error handle non existent column indexes.
@@ -66,12 +66,12 @@ func (this *CsvWriter) SetMask(t_mask []int) {
 	}
 }
 
-func (this *CsvWriter) ClearMask() {
+func (this *CsvFmt) ClearMask() {
 	// Clear by assigning a new one.
 	this.ColMask = make(map[int]bool)
 }
 
-func (this *CsvWriter) ColumnMasked(t_colIndex int) bool {
+func (this *CsvFmt) ColumnMasked(t_colIndex int) bool {
 	// Guard clause (the mask has no elements then print everything).
 	// As we should always print atleast one column.
 	if len(this.ColMask) == 0 {
@@ -84,19 +84,19 @@ func (this *CsvWriter) ColumnMasked(t_colIndex int) bool {
 	return ok
 }
 
-func (this *CsvWriter) SetRows(t_rows []td.TableDataRow) {
+func (this *CsvFmt) SetRows(t_rows []td.TableDataRow) {
 	this.Rows = t_rows
 }
 
-func (this *CsvWriter) GetRows() []td.TableDataRow {
+func (this *CsvFmt) GetRows() []td.TableDataRow {
 	return this.Rows
 }
 
-func (this *CsvWriter) AddRow(t_row td.TableDataRow) {
+func (this *CsvFmt) AddRow(t_row td.TableDataRow) {
 	this.Rows = append(this.Rows, t_row)
 }
 
-func (this *CsvWriter) Write() error {
+func (this *CsvFmt) Write() error {
 	err := this.printTableHeader()
 	if err != nil {
 		return err
@@ -110,8 +110,8 @@ func (this *CsvWriter) Write() error {
 	return nil
 }
 
-func InitCsvWriter(t_label string) (CsvWriter, error) {
-	writer := CsvWriter{}
+func InitCsvFmt(t_label string) (CsvFmt, error) {
+	writer := CsvFmt{}
 
 	writer.Label = t_label
 	writer.ColMask = make(map[int]bool)

@@ -3,9 +3,9 @@ package ir
 import (
 	"fmt"
 
+	tf "github.com/soerlemans/table/out/table_fmt"
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
-	w "github.com/soerlemans/table/writer"
 )
 
 type VmPtr = *IrVm
@@ -18,7 +18,7 @@ type IrVm struct {
 	Table *td.TableData
 
 	// The writer is in control of the final output result of the table program.
-	Writer w.Writer
+	Writer tf.TableFmt
 }
 
 // TODO: The index and tableData should be wrapped in a struct or something.
@@ -250,7 +250,7 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 
 		case Md:
 			u.Logln("ExecIr: Switching to md writer.")
-			md, err := w.InitMdWriter(inst.Label)
+			md, err := tf.InitMdFmt(inst.Label)
 			if err != nil {
 				return err
 			}
@@ -319,7 +319,7 @@ func InitIrVm(t_table *td.TableData) (IrVm, error) {
 	vm.Table = t_table
 
 	// Set writer field.
-	writer, err := w.InitCsvWriter("ldefault")
+	writer, err := tf.InitCsvFmt("ldefault")
 	if err != nil {
 		return vm, err
 	}
