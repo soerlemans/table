@@ -58,6 +58,9 @@ var Keywords = map[string]TokenType{
 	"when": WHEN,
 	"mut":  MUT,
 
+	"head": WHEN,
+	"tail":  MUT,
+
 	// Writer specifications:
 	"csv":  CSV,
 	"md":   MD,

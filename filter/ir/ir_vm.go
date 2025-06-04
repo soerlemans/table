@@ -3,9 +3,9 @@ package ir
 import (
 	"fmt"
 
+	tf "github.com/soerlemans/table/out/table_fmt"
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
-	w "github.com/soerlemans/table/writer"
 )
 
 type VmPtr = *IrVm
@@ -17,8 +17,8 @@ type IrVm struct {
 	Index int
 	Table *td.TableData
 
-	// The writer is in control of the final output result of the table program.
-	Writer w.Writer
+	// The formatter is in control of formatting the table in different formats.
+	Fmt tf.TableFmt
 }
 
 // TODO: The index and tableData should be wrapped in a struct or something.
@@ -205,6 +205,25 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 	return result, nil
 }
 
+func (this *IrVm) applyFmtMask(t_inst Instruction) error {
+	// Get operands from the instruction.
+	colNames, err := this.resolveValues(t_inst.Operands)
+	if err != nil {
+		return err
+	}
+
+	// Convert column names to indices.
+	indices, err := this.Table.ColNamesToIndices(colNames)
+	if err != nil {
+		return err
+	}
+
+	// Apply the mask.
+	this.Fmt.SetMask(indices)
+
+	return nil
+}
+
 // TODO: receive an output buffer to write to or something.
 // Or something else.
 func (this *IrVm) ExecIr(instructions InstructionList) error {
@@ -249,34 +268,60 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			break
 
 		case Md:
-			u.Logln("ExecIr: Switching to md writer.")
-			md, err := w.InitMdWriter(inst.Label)
+			u.Logln("ExecIr: Switching to md fmt.")
+			md, err := tf.InitMdFmt(inst.Label)
 			if err != nil {
 				return err
 			}
 
-			// TODO: Write a copy/switch function.
-			// Or maybe use a pointer for the internal data.
-			// Update the headers.
-			md.SetHeaders(this.Table.Headers)
+			// Copy over all data from the old formatter.
+			// And switch it out.
+			md.Copy(this.Fmt)
+			this.Fmt = &md
 
-			// Copy over the old registered rows.
-			rows := this.Writer.GetRows()
-			md.SetRows(rows)
+			// Apply format mask.
+			err = this.applyFmtMask(inst)
+			if err != nil {
+				return err
+			}
+			break
 
-			colNames, err := this.resolveValues(inst.Operands)
+		case Json:
+			u.Logln("ExecIr: Switching to json fmt.")
+			json_, err := tf.InitJsonFmt(inst.Label)
 			if err != nil {
 				return err
 			}
 
-			indices, err := this.Table.ColNamesToIndices(colNames)
+			// Copy over all data from the old formatter.
+			// And switch it out.
+			json_.Copy(this.Fmt)
+			this.Fmt = &json_
+
+			// Apply format mask.
+			err = this.applyFmtMask(inst)
+			if err != nil {
+				return err
+			}
+			break
+
+		case Html:
+			u.Logln("ExecIr: Switching to html fmt.")
+			html_, err := tf.InitHtmlFmt(inst.Label)
 			if err != nil {
 				return err
 			}
 
-			md.SetMask(indices)
+			// Copy over all data from the old formatter.
+			// And switch it out.
+			html_.Copy(this.Fmt)
+			this.Fmt = &html_
 
-			this.Writer = &md
+			// Apply format mask.
+			err = this.applyFmtMask(inst)
+			if err != nil {
+				return err
+			}
 			break
 
 		default:
@@ -300,14 +345,14 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			return err
 		}
 
-		this.Writer.AddRow(row)
+		this.Fmt.AddRow(row)
 	}
 
 	return nil
 }
 
 func (this *IrVm) Write() error {
-	return this.Writer.Write()
+	return this.Fmt.Write()
 }
 
 func InitIrVm(t_table *td.TableData) (IrVm, error) {
@@ -318,14 +363,14 @@ func InitIrVm(t_table *td.TableData) (IrVm, error) {
 	vm.VariableStore = make(map[string]string)
 	vm.Table = t_table
 
-	// Set writer field.
-	writer, err := w.InitCsvWriter("ldefault")
+	// Set formatter field.
+	fmt_, err := tf.InitCsvFmt("ldefault")
 	if err != nil {
 		return vm, err
 	}
 
-	vm.Writer = &writer
-	vm.Writer.SetHeaders(vm.Table.Headers)
+	vm.Fmt = &fmt_
+	vm.Fmt.SetHeaders(vm.Table.Headers)
 
 	return vm, nil
 }

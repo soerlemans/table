@@ -14,11 +14,17 @@ Here is a simple usage of `table`:
 ![Simple example usage](assets/table_usage_simple.png)
 
 You can select columns to compare to values by using:
- - `.<column name>` or for column names that contain spaces ->`."<column name>"`.
- - `$<column index>` 
+ - `.<column name>`: Or for column names that contain spaces ->`."<column name>"`.
+ - `$<column index>`: Similar to AWK.
 
 Comparing numbers is also supported.
 
+## Predefined variables
+This project is heavily inspired by AWK (as all things that are good).
+So here are some predefined variables you can utilize:
+ - `NF`: Number of fields.
+ - `FNR`: Current record/row number (This is zero indexed).
+ - `NR`: Record/Row count.
 
 ## Install
 Install using `go install`:

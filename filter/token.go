@@ -58,6 +58,10 @@ const (
 	// These expression do not filter out any rows.
 	MUT
 
+	// Keyword for how many results you want maximum.
+	HEAD
+	TAIL
+
 	// Output specifiers:
 	// Selects which columns to output (optionally specify order)).
 	CSV
@@ -114,6 +118,10 @@ func (t TokenType) String() string {
 		return "when"
 	case MUT:
 		return "mut"
+	case HEAD:
+		return "head"
+	case TAIL:
+		return "tail"
 	case CSV:
 		return "csv"
 	case MD:
