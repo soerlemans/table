@@ -17,8 +17,8 @@ type IrVm struct {
 	Index int
 	Table *td.TableData
 
-	// The writer is in control of the final output result of the table program.
-	Writer tf.TableFmt
+	// The formatter is in control of formatting the table in different formats.
+	Fmt tf.TableFmt
 }
 
 // TODO: The index and tableData should be wrapped in a struct or something.
@@ -249,7 +249,7 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			break
 
 		case Md:
-			u.Logln("ExecIr: Switching to md writer.")
+			u.Logln("ExecIr: Switching to md fmt.")
 			md, err := tf.InitMdFmt(inst.Label)
 			if err != nil {
 				return err
@@ -261,7 +261,7 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			md.SetHeaders(this.Table.Headers)
 
 			// Copy over the old registered rows.
-			rows := this.Writer.GetRows()
+			rows := this.Fmt.GetRows()
 			md.SetRows(rows)
 
 			colNames, err := this.resolveValues(inst.Operands)
@@ -276,7 +276,7 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 
 			md.SetMask(indices)
 
-			this.Writer = &md
+			this.Fmt = &md
 			break
 
 		default:
@@ -300,14 +300,14 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			return err
 		}
 
-		this.Writer.AddRow(row)
+		this.Fmt.AddRow(row)
 	}
 
 	return nil
 }
 
 func (this *IrVm) Write() error {
-	return this.Writer.Write()
+	return this.Fmt.Write()
 }
 
 func InitIrVm(t_table *td.TableData) (IrVm, error) {
@@ -318,14 +318,14 @@ func InitIrVm(t_table *td.TableData) (IrVm, error) {
 	vm.VariableStore = make(map[string]string)
 	vm.Table = t_table
 
-	// Set writer field.
-	writer, err := tf.InitCsvFmt("ldefault")
+	// Set formatter field.
+	fmt_, err := tf.InitCsvFmt("ldefault")
 	if err != nil {
 		return vm, err
 	}
 
-	vm.Writer = &writer
-	vm.Writer.SetHeaders(vm.Table.Headers)
+	vm.Fmt = &fmt_
+	vm.Fmt.SetHeaders(vm.Table.Headers)
 
 	return vm, nil
 }

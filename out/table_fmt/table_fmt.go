@@ -26,7 +26,8 @@ type TableFmt interface {
 }
 
 // Embeddable struct for reducing boilerplate.
-type StandardTableFmt struct {
+// Does not implement Write().
+type BaseTableFmt struct {
 	Label string
 
 	// We need to calculate the max column width for every entry.
@@ -38,16 +39,16 @@ type StandardTableFmt struct {
 	Rows []td.TableDataRow
 }
 
-func (this *StandardTableFmt) GetLabel() string {
+func (this *BaseTableFmt) GetLabel() string {
 	return this.Label
 }
 
-func (this *StandardTableFmt) SetHeaders(t_headers td.TableDataRow) {
+func (this *BaseTableFmt) SetHeaders(t_headers td.TableDataRow) {
 	this.Headers = t_headers
 }
 
 // Mark columns to print during write.
-func (this *StandardTableFmt) SetMask(t_mask []int) {
+func (this *BaseTableFmt) SetMask(t_mask []int) {
 	this.ClearMask()
 
 	// TODO: Error handle non existent column indices (for now ignore).
@@ -56,12 +57,12 @@ func (this *StandardTableFmt) SetMask(t_mask []int) {
 	}
 }
 
-func (this *StandardTableFmt) ClearMask() {
+func (this *BaseTableFmt) ClearMask() {
 	// Clear by assigning a new one.
 	this.ColMask = make(map[int]bool)
 }
 
-func (this *StandardTableFmt) ColumnMasked(t_colIndex int) bool {
+func (this *BaseTableFmt) ColumnMasked(t_colIndex int) bool {
 	// Guard clause (the mask has no elements then print everything).
 	// As we should always print atleast one column.
 	if len(this.ColMask) == 0 {
@@ -74,14 +75,14 @@ func (this *StandardTableFmt) ColumnMasked(t_colIndex int) bool {
 	return ok
 }
 
-func (this *StandardTableFmt) SetRows(t_rows []td.TableDataRow) {
+func (this *BaseTableFmt) SetRows(t_rows []td.TableDataRow) {
 	this.Rows = t_rows
 }
 
-func (this *StandardTableFmt) GetRows() []td.TableDataRow {
+func (this *BaseTableFmt) GetRows() []td.TableDataRow {
 	return this.Rows
 }
 
-func (this *StandardTableFmt) AddRow(t_row td.TableDataRow) {
+func (this *BaseTableFmt) AddRow(t_row td.TableDataRow) {
 	this.Rows = append(this.Rows, t_row)
 }

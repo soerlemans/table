@@ -12,15 +12,8 @@ const (
 )
 
 type MdFmt struct {
-	Label string
-
-	// We need to calculate the max column width for every entry..
-	ColWidth map[int]int
-	Headers  td.TableDataRow
-
-	ColMask map[int]bool
-
-	Rows []td.TableDataRow
+	// Includes base data and methods.
+	BaseTableFmt
 }
 
 func (this *MdFmt) updateColWidth(t_row td.TableDataRow) {
@@ -34,42 +27,10 @@ func (this *MdFmt) updateColWidth(t_row td.TableDataRow) {
 	}
 }
 
-func (this *MdFmt) GetLabel() string {
-	return this.Label
-}
-
 func (this *MdFmt) SetHeaders(t_headers td.TableDataRow) {
 	this.Headers = t_headers
 
 	this.updateColWidth(t_headers)
-}
-
-// Mark columns to print during write.
-func (this *MdFmt) SetMask(t_mask []int) {
-	this.ClearMask()
-
-	// TODO: Error handle non existent column indexes.
-	for _, value := range t_mask {
-		this.ColMask[value] = true
-	}
-}
-
-func (this *MdFmt) ClearMask() {
-	// Clear by assigning a new one.
-	this.ColMask = make(map[int]bool)
-}
-
-func (this *MdFmt) ColumnMasked(t_colIndex int) bool {
-	// Guard clause (the mask has no elements then print everything).
-	// As we should always print atleast one column.
-	if len(this.ColMask) == 0 {
-		return true
-	}
-
-	// We use the map as a set.
-	_, ok := this.ColMask[t_colIndex]
-
-	return ok
 }
 
 func (this *MdFmt) SetRows(t_rows []td.TableDataRow) {
@@ -79,10 +40,6 @@ func (this *MdFmt) SetRows(t_rows []td.TableDataRow) {
 	for _, row := range this.Rows {
 		this.updateColWidth(row)
 	}
-}
-
-func (this *MdFmt) GetRows() []td.TableDataRow {
-	return this.Rows
 }
 
 func (this *MdFmt) AddRow(t_row td.TableDataRow) {
