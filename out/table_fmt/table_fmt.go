@@ -10,17 +10,20 @@ type TableFmtPtr = *TableFmt
 type TableFmt interface {
 	GetLabel() string
 
-	SetHeaders(headers td.TableDataRow)
-
 	// Determine which columns to mask, this determines if they will be printed.
 	SetMask(t_filter []int)
+	GetMask() []int
+
 	ClearMask()
 	ColumnMasked(t_colIndex int) bool
 
+	SetHeaders(headers td.TableDataRow)
+	GetHeaders() td.TableDataRow
 	SetRows(t_rows []td.TableDataRow)
 	GetRows() []td.TableDataRow
 
 	AddRow(t_row td.TableDataRow)
+	Copy(t_fmt TableFmt) error
 
 	Write() error
 }
@@ -30,21 +33,15 @@ type TableFmt interface {
 type BaseTableFmt struct {
 	Label string
 
-	// We need to calculate the max column width for every entry.
-	ColWidth map[int]int
-	Headers  td.TableDataRow
-
 	ColMask map[int]bool
 
-	Rows []td.TableDataRow
+	// We need to calculate the max column width for every entry.
+	Headers td.TableDataRow
+	Rows    []td.TableDataRow
 }
 
 func (this *BaseTableFmt) GetLabel() string {
 	return this.Label
-}
-
-func (this *BaseTableFmt) SetHeaders(t_headers td.TableDataRow) {
-	this.Headers = t_headers
 }
 
 // Mark columns to print during write.
@@ -55,6 +52,18 @@ func (this *BaseTableFmt) SetMask(t_mask []int) {
 	for _, value := range t_mask {
 		this.ColMask[value] = true
 	}
+}
+
+func (this *BaseTableFmt) GetMask() []int {
+	var mask []int
+
+	for key, value := range this.ColMask {
+		if value {
+			mask = append(mask, key)
+		}
+	}
+
+	return mask
 }
 
 func (this *BaseTableFmt) ClearMask() {
@@ -75,6 +84,14 @@ func (this *BaseTableFmt) ColumnMasked(t_colIndex int) bool {
 	return ok
 }
 
+func (this *BaseTableFmt) SetHeaders(t_headers td.TableDataRow) {
+	this.Headers = t_headers
+}
+
+func (this *BaseTableFmt) GetHeaders() td.TableDataRow {
+	return this.Headers
+}
+
 func (this *BaseTableFmt) SetRows(t_rows []td.TableDataRow) {
 	this.Rows = t_rows
 }
@@ -85,4 +102,20 @@ func (this *BaseTableFmt) GetRows() []td.TableDataRow {
 
 func (this *BaseTableFmt) AddRow(t_row td.TableDataRow) {
 	this.Rows = append(this.Rows, t_row)
+}
+
+// Generic copying functionality.
+func (this *BaseTableFmt) Copy(t_fmt TableFmt) error {
+	this.Label = t_fmt.GetLabel()
+
+	headers := t_fmt.GetHeaders()
+	this.SetHeaders(headers)
+
+	rows := t_fmt.GetRows()
+	this.SetRows(rows)
+
+	mask := t_fmt.GetMask()
+	this.SetMask(mask)
+
+	return nil
 }

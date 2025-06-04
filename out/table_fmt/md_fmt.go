@@ -14,6 +14,8 @@ const (
 type MdFmt struct {
 	// Includes base data and methods.
 	BaseTableFmt
+
+	ColWidth map[int]int
 }
 
 func (this *MdFmt) updateColWidth(t_row td.TableDataRow) {
@@ -115,6 +117,22 @@ func (this *MdFmt) Write() error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+// Generic copying functionality.
+func (this *MdFmt) Copy(t_fmt TableFmt) error {
+	this.Label = t_fmt.GetLabel()
+
+	headers := t_fmt.GetHeaders()
+	this.SetHeaders(headers)
+
+	rows := t_fmt.GetRows()
+	this.SetRows(rows)
+
+	mask := t_fmt.GetMask()
+	this.SetMask(mask)
 
 	return nil
 }

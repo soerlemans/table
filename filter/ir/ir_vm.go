@@ -205,6 +205,25 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 	return result, nil
 }
 
+func (this *IrVm) applyFmtMask(t_inst Instruction) error {
+	// Get operands from the instruction.
+	colNames, err := this.resolveValues(t_inst.Operands)
+	if err != nil {
+		return err
+	}
+
+	// Convert column names to indices.
+	indices, err := this.Table.ColNamesToIndices(colNames)
+	if err != nil {
+		return err
+	}
+
+	// Apply the mask.
+	this.Fmt.SetMask(indices)
+
+	return nil
+}
+
 // TODO: receive an output buffer to write to or something.
 // Or something else.
 func (this *IrVm) ExecIr(instructions InstructionList) error {
@@ -255,28 +274,16 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 				return err
 			}
 
-			// TODO: Write a copy/switch function.
-			// Or maybe use a pointer for the internal data.
-			// Update the headers.
-			md.SetHeaders(this.Table.Headers)
-
-			// Copy over the old registered rows.
-			rows := this.Fmt.GetRows()
-			md.SetRows(rows)
-
-			colNames, err := this.resolveValues(inst.Operands)
-			if err != nil {
-				return err
-			}
-
-			indices, err := this.Table.ColNamesToIndices(colNames)
-			if err != nil {
-				return err
-			}
-
-			md.SetMask(indices)
-
+			// Copy over all data from the old formatter.
+			// And switch it out.
+			md.Copy(this.Fmt)
 			this.Fmt = &md
+
+			// Apply format mask.
+			err = this.applyFmtMask(inst)
+			if err != nil {
+				return err
+			}
 			break
 
 		default:
