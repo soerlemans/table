@@ -2,8 +2,18 @@ package table_fmt
 
 import (
 	"fmt"
+	"strings"
 
 	td "github.com/soerlemans/table/table_data"
+)
+
+type IdentLevel int
+
+const (
+	Table IdentLevel = iota
+	Section
+	Row
+	Cell
 )
 
 type HtmlFmt struct {
@@ -11,28 +21,41 @@ type HtmlFmt struct {
 	BaseTableFmt
 }
 
+func indent(t_level IdentLevel, t_fmt string, t_args ...interface{}) {
+	level := int(t_level)
+
+	// We use 2 spaces for indentation.
+	str := strings.Repeat("  ", level)
+
+	format := fmt.Sprintf("%s%s\n", str, t_fmt)
+
+	fmt.Printf(format, t_args...)
+}
+
 func (this *HtmlFmt) printRow(t_tag string, t_row td.TableDataRow) error {
-	fmt.Println("<tr>")
+	indent(Row, "<tr>")
 	for index, cell := range t_row {
 		// Check if the column is selected.
 		if this.ColumnMasked(index) {
-			fmt.Printf("<%s> %s </%s>\n", t_tag, cell, t_tag)
+
+			indent(Cell, "<%s> %s </%s>", t_tag, cell, t_tag)
 		}
 	}
-	fmt.Println("</tr>")
+	indent(Row, "</tr>")
 
 	return nil
 }
 
 func (this *HtmlFmt) printTableHeader() error {
-	fmt.Println("<thead>")
+	indent(Section, "<thead>")
 	err := this.printRow("td", this.Headers)
-	fmt.Println("</thead>")
+	indent(Section, "</thead>")
 
 	return err
 }
 
 func (this *HtmlFmt) printTableRows() error {
+	indent(Section, "<tbody>")
 	// Print per row.
 	for _, row := range this.Rows {
 		// Print cells of the row.
@@ -41,25 +64,24 @@ func (this *HtmlFmt) printTableRows() error {
 			return err
 		}
 	}
+	indent(Section, "</tbody>")
 
 	return nil
 }
 
 func (this *HtmlFmt) Write() error {
-	fmt.Println("<table>")
+	indent(Table, "<table>")
 	err := this.printTableHeader()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("</thead>")
 	err = this.printTableRows()
 	if err != nil {
 		return err
 	}
-	fmt.Println("</thead>")
 
-	fmt.Println("</table>")
+	indent(Table, "</table>")
 
 	return nil
 }
