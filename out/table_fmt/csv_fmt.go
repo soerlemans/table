@@ -57,10 +57,10 @@ func (this *CsvFmt) Write() error {
 }
 
 func InitCsvFmt(t_label string) (CsvFmt, error) {
-	writer := CsvFmt{}
+	fmt_ := CsvFmt{}
 
-	writer.Label = t_label
-	writer.ColMask = make(map[int]bool)
+	fmt_.Label = t_label
+	fmt_.ColMask = make(map[int]bool)
 
-	return writer, nil
+	return fmt_, nil
 }

@@ -286,6 +286,25 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			}
 			break
 
+		case Json:
+			u.Logln("ExecIr: Switching to json fmt.")
+			json_, err := tf.InitJsonFmt(inst.Label)
+			if err != nil {
+				return err
+			}
+
+			// Copy over all data from the old formatter.
+			// And switch it out.
+			json_.Copy(this.Fmt)
+			this.Fmt = &json_
+
+			// Apply format mask.
+			err = this.applyFmtMask(inst)
+			if err != nil {
+				return err
+			}
+			break
+
 		default:
 			u.Logln("ExecIr: Error unhandeld InstructionType.")
 			// TODO: Error out.

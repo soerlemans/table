@@ -138,11 +138,11 @@ func (this *MdFmt) Copy(t_fmt TableFmt) error {
 }
 
 func InitMdFmt(t_label string) (MdFmt, error) {
-	writer := MdFmt{}
+	fmt_ := MdFmt{}
 
-	writer.Label = t_label
-	writer.ColWidth = make(map[int]int)
-	writer.ColMask = make(map[int]bool)
+	fmt_.Label = t_label
+	fmt_.ColWidth = make(map[int]int)
+	fmt_.ColMask = make(map[int]bool)
 
-	return writer, nil
+	return fmt_, nil
 }
