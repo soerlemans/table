@@ -26,6 +26,9 @@ const (
 	When
 	Mut
 
+	Head
+	Tail
+
 	Csv
 	Md
 	Json

@@ -455,6 +455,38 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 		inst = &mut
 		break
 
+	case HEAD:
+		t_stream.Next()
+		if t_stream.Eos() {
+			// TODO: Handle end of stream expected a numeric.
+		}
+
+		if argPtr, err := rvalue(t_stream); validPtr(argPtr, err) {
+			head := ir.InitInstruction(ir.Head, *argPtr)
+
+			inst = &head
+		} else {
+			// We must receive an argument for head.
+			return inst, errExpectedString("keyword", "Number or identifier")
+		}
+		break
+
+	case TAIL:
+		t_stream.Next()
+		if t_stream.Eos() {
+			// TODO: Handle end of stream expected a numeric.
+		}
+
+		if argPtr, err := rvalue(t_stream); validPtr(argPtr, err) {
+			tail := ir.InitInstruction(ir.Tail, *argPtr)
+
+			inst = &tail
+		} else {
+			// We must receive an argument for head.
+			return inst, errExpectedString("keyword", "Number or identifier")
+		}
+		break
+
 	default:
 		// No error this is fine, just not a keyword.
 		break

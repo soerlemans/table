@@ -59,6 +59,8 @@ expr             : rvalue LE rvalue
 
 keyword          : WHEN expr
                  | MUT expr
+								 | HEAD rvalue
+								 | TAIL rvalue
                  ;
 
 write_csv        : CSV
