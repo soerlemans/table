@@ -226,13 +226,14 @@ func (this *IrVm) applyFmtMask(t_inst *Instruction) error {
 }
 
 // Change the output table format, and remove the instruction from the list.
-func (this *IrVm) execFmt(t_elem *l.Element, t_list ValueList) error {
+func (this *IrVm) execFmt(t_elem *l.Element) error {
 	var newFmt tf.TableFmt
 
 	inst := InstructionListValue(t_elem)
 
 	label := inst.Label
 	instType := inst.Type
+	// operands := inst.Operands
 
 	switch instType {
 	case Csv:
@@ -343,80 +344,13 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 
 		// TODO: Move these to somewhere else.
 		case Csv:
-			u.Logln("ExecIr: Switching to csv fmt.")
-			csv, err := tf.InitCsvFmt(inst.Label)
-			if err != nil {
-				return err
-			}
-
-			// Copy over all data from the old formatter.
-			// And switch it out.
-			csv.Copy(this.Fmt)
-			this.Fmt = &csv
-
-			// Apply format mask.
-			err = this.applyFmtMask(inst)
-			if err != nil {
-				return err
-			}
-			break
-
+			fallthrough
 		case Md:
-			u.Logln("ExecIr: Switching to md fmt.")
-			md, err := tf.InitMdFmt(inst.Label)
-			if err != nil {
-				return err
-			}
-
-			// Copy over all data from the old formatter.
-			// And switch it out.
-			md.Copy(this.Fmt)
-			this.Fmt = &md
-
-			// Apply format mask.
-			err = this.applyFmtMask(inst)
-			if err != nil {
-				return err
-			}
-			break
-
+			fallthrough
 		case Json:
-			u.Logln("ExecIr: Switching to json fmt.")
-			json_, err := tf.InitJsonFmt(inst.Label)
-			if err != nil {
-				return err
-			}
-
-			// Copy over all data from the old formatter.
-			// And switch it out.
-			json_.Copy(this.Fmt)
-			this.Fmt = &json_
-
-			// Apply format mask.
-			err = this.applyFmtMask(inst)
-			if err != nil {
-				return err
-			}
-			break
-
+			fallthrough
 		case Html:
-			u.Logln("ExecIr: Switching to html fmt.")
-			html_, err := tf.InitHtmlFmt(inst.Label)
-			if err != nil {
-				return err
-			}
-
-			// Copy over all data from the old formatter.
-			// And switch it out.
-			html_.Copy(this.Fmt)
-			this.Fmt = &html_
-
-			// Apply format mask.
-			err = this.applyFmtMask(inst)
-			if err != nil {
-				return err
-			}
-			break
+			this.execFmt(elem)
 
 		default:
 			u.Logf("ExecIr: Error unhandeld InstructionType: %v", inst.Type)
