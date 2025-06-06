@@ -2,7 +2,7 @@ package main
 
 import (
 	f "github.com/soerlemans/table/filter"
-	"github.com/soerlemans/table/filter/ir"
+	ir "github.com/soerlemans/table/filter/ir"
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
 )
@@ -39,16 +39,9 @@ func Process(t_ctx ProcessContext) error {
 		return err
 	}
 
-	rows := t_ctx.Table.RowsData
-	for index, _ := range rows {
-		inst := filter.Instructions
-
-		// Update the virtual machines row index.
-		vm.Index = index
-
-		// Execute instructions for current line.
-		vm.ExecIr(*inst)
-	}
+	// We can modify redundant instructions during execution.
+	instructions := filter.Instructions
+	vm.Exec(*instructions)
 
 	return vm.Write()
 }

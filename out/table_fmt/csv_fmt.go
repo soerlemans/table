@@ -12,13 +12,14 @@ type CsvFmt struct {
 }
 
 func (this *CsvFmt) printRow(t_row td.TableDataRow) error {
-	var sep string
-	for index, cell := range t_row {
-		if this.ColumnMasked(index) {
-			fmt.Printf("%s%s", sep, cell)
+	order := this.GetOrder()
 
-			sep = ","
-		}
+	var sep string
+	for _, index := range order {
+		cell := t_row[index]
+		fmt.Printf("%s%s", sep, cell)
+
+		sep = ","
 	}
 	fmt.Println()
 
@@ -31,7 +32,12 @@ func (this *CsvFmt) printTableHeader() error {
 
 func (this *CsvFmt) printTableRows() error {
 	// Print per row.
-	for _, row := range this.Rows {
+	for index, row := range this.Rows {
+		// Skip if we are not in bounds.
+		if !this.InBounds(index) {
+			continue
+		}
+
 		// Print cells of the row.
 		err := this.printRow(row)
 		if err != nil {
@@ -60,7 +66,8 @@ func InitCsvFmt(t_label string) (CsvFmt, error) {
 	fmt_ := CsvFmt{}
 
 	fmt_.Label = t_label
-	fmt_.ColMask = make(map[int]bool)
+	fmt_.Head = HEAD_UNSET
+	fmt_.Tail = TAIL_UNSET
 
 	return fmt_, nil
 }

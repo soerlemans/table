@@ -23,6 +23,7 @@ func InitFilter(t_text string) (Filter, error) {
 		return filter_, err
 	}
 
+
 	filter_ = Filter{instructions}
 
 	return filter_, nil

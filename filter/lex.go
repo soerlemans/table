@@ -18,7 +18,7 @@ const (
 
 	COMMA_RN = ','
 	PIPE_RN  = '|'
-	COLON_RN  = ':'
+	COLON_RN = ':'
 
 	LESS_THAN_STR       = "<"
 	LESS_THAN_EQUAL_STR = "<="
@@ -36,7 +36,7 @@ var singleRuneSymbols = map[string]TokenType{
 	string(DOLLAR_SIGN_RN): ACCESSOR_POSITIONAL,
 	string(COMMA_RN):       COMMA,
 	string(PIPE_RN):        PIPE,
-	string(COLON_RN):        COLON,
+	string(COLON_RN):       COLON,
 
 	LESS_THAN_STR:    LESS_THAN,
 	GREATER_THAN_STR: GREATER_THAN,
@@ -58,8 +58,8 @@ var Keywords = map[string]TokenType{
 	"when": WHEN,
 	"mut":  MUT,
 
-	"head": WHEN,
-	"tail":  MUT,
+	"head": HEAD,
+	"tail": TAIL,
 
 	// Writer specifications:
 	"csv":  CSV,

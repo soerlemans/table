@@ -51,16 +51,18 @@ func (this *MdFmt) AddRow(t_row td.TableDataRow) {
 }
 
 func (this *MdFmt) printRow(t_row td.TableDataRow) error {
-	for index, cell := range t_row {
+	order := this.GetOrder()
+
+	for _, index := range order {
+		cell := t_row[index]
+
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
 			// TODO: Return err.
 		}
 
 		// Check if the column is selected.
-		if this.ColumnMasked(index) {
-			fmt.Printf("| %-*s ", colWidth, cell)
-		}
+		fmt.Printf("| %-*s ", colWidth, cell)
 	}
 	fmt.Println("|")
 
@@ -72,17 +74,17 @@ func (this *MdFmt) printTableHeader() error {
 }
 
 func (this *MdFmt) printTableHeaderSep() error {
-	for index, _ := range this.Headers {
+	order := this.GetOrder()
+
+	for _, index := range order {
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
 			// TODO: Return err.
 		}
 
 		// Check if the column is selected.
-		if this.ColumnMasked(index) {
-			colSep := strings.Repeat("-", colWidth)
-			fmt.Printf("| %s ", colSep)
-		}
+		colSep := strings.Repeat("-", colWidth)
+		fmt.Printf("| %s ", colSep)
 	}
 	fmt.Println("|")
 
@@ -90,8 +92,14 @@ func (this *MdFmt) printTableHeaderSep() error {
 }
 
 func (this *MdFmt) printTableRows() error {
+
 	// Print per row.
-	for _, row := range this.Rows {
+	for index, row := range this.Rows {
+		// Skip if we are not in bounds.
+		if !this.InBounds(index) {
+			continue
+		}
+
 		// Print cells of the row.
 		err := this.printRow(row)
 		if err != nil {
@@ -123,6 +131,8 @@ func (this *MdFmt) Write() error {
 
 // Generic copying functionality.
 func (this *MdFmt) Copy(t_fmt TableFmt) error {
+	// We need to enforce the shadowed fucntions of the MdFmt struct.
+	// Not the BaseTableFmt Copy().
 	this.Label = t_fmt.GetLabel()
 
 	headers := t_fmt.GetHeaders()
@@ -131,8 +141,14 @@ func (this *MdFmt) Copy(t_fmt TableFmt) error {
 	rows := t_fmt.GetRows()
 	this.SetRows(rows)
 
-	mask := t_fmt.GetMask()
-	this.SetMask(mask)
+	order := t_fmt.GetOrder()
+	this.SetOrder(order)
+
+	head := t_fmt.GetHead()
+	this.SetHead(head)
+
+	tail := t_fmt.GetTail()
+	this.SetTail(tail)
 
 	return nil
 }
@@ -142,7 +158,8 @@ func InitMdFmt(t_label string) (MdFmt, error) {
 
 	fmt_.Label = t_label
 	fmt_.ColWidth = make(map[int]int)
-	fmt_.ColMask = make(map[int]bool)
+	fmt_.Head = HEAD_UNSET
+	fmt_.Tail = TAIL_UNSET
 
 	return fmt_, nil
 }
