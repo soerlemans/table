@@ -5,8 +5,8 @@ import (
 )
 
 // Convenience alias.
-type InstructionList = []Instruction
 type ValueList = []Value
+type InstListPtr = *InstructionList
 
 type InstructionType int
 
@@ -54,6 +54,11 @@ func (t InstructionType) String() string {
 		return "When"
 	case Mut:
 		return "Mut"
+
+	case Head:
+		return "Head"
+	case Tail:
+		return "Tail"
 
 	case Csv:
 		return "Csv"

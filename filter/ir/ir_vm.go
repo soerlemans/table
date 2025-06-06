@@ -1,6 +1,7 @@
 package ir
 
 import (
+	l "container/list"
 	"fmt"
 
 	tf "github.com/soerlemans/table/out/table_fmt"
@@ -205,7 +206,7 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 	return result, nil
 }
 
-func (this *IrVm) applyFmtMask(t_inst Instruction) error {
+func (this *IrVm) applyFmtMask(t_inst *Instruction) error {
 	// Get operands from the instruction.
 	colNames, err := this.resolveValues(t_inst.Operands)
 	if err != nil {
@@ -224,9 +225,80 @@ func (this *IrVm) applyFmtMask(t_inst Instruction) error {
 	return nil
 }
 
+// Change the output table format, and remove the instruction from the list.
+func (this *IrVm) execFmt(t_elem *l.Element, t_list ValueList) error {
+	var newFmt tf.TableFmt
+
+	inst := InstructionListValue(t_elem)
+
+	label := inst.Label
+	instType := inst.Type
+
+	switch instType {
+	case Csv:
+		u.Logln("ExecIr: Switching to csv fmt.")
+		csv, err := tf.InitCsvFmt(label)
+		if err != nil {
+			return err
+		}
+		newFmt = &csv
+		break
+
+	case Md:
+		u.Logln("ExecIr: Switching to md fmt.")
+		md, err := tf.InitMdFmt(label)
+		if err != nil {
+			return err
+		}
+
+		newFmt = &md
+		break
+
+	case Json:
+		u.Logln("ExecIr: Switching to json fmt.")
+		json_, err := tf.InitJsonFmt(label)
+		if err != nil {
+			return err
+		}
+
+		newFmt = &json_
+		break
+
+	case Html:
+		u.Logln("ExecIr: Switching to html fmt.")
+		html_, err := tf.InitHtmlFmt(label)
+		if err != nil {
+			return err
+		}
+
+		newFmt = &html_
+		break
+
+	default:
+		u.Logf("execFmt: Error unhandeld InstructionType: %v", instType)
+		// TODO: Error out.
+		break
+	}
+
+	if newFmt != nil {
+		// Copy over all data from the old formatter.
+		// And switch it out.
+		newFmt.Copy(this.Fmt)
+		this.Fmt = newFmt
+
+		// Apply format mask.
+		err := this.applyFmtMask(inst)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // TODO: receive an output buffer to write to or something.
 // Or something else.
-func (this *IrVm) ExecIr(instructions InstructionList) error {
+func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 	index := this.Index
 	table := this.Table
 
@@ -242,7 +314,9 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 	this.VariableStore["NR"] = fmt.Sprintf("%d", rowLength)
 
 	skip := false
-	for _, inst := range instructions {
+	for elem := t_insts.Front(); elem != nil; elem = elem.Next() {
+		inst := InstructionListValue(elem)
+
 		switch inst.Type {
 		case LessThan:
 			fallthrough
@@ -264,6 +338,26 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			// If the comparison was false we should skip printing the line.
 			if !cmp {
 				skip = true
+			}
+			break
+
+		// TODO: Move these to somewhere else.
+		case Csv:
+			u.Logln("ExecIr: Switching to csv fmt.")
+			csv, err := tf.InitCsvFmt(inst.Label)
+			if err != nil {
+				return err
+			}
+
+			// Copy over all data from the old formatter.
+			// And switch it out.
+			csv.Copy(this.Fmt)
+			this.Fmt = &csv
+
+			// Apply format mask.
+			err = this.applyFmtMask(inst)
+			if err != nil {
+				return err
 			}
 			break
 
@@ -325,12 +419,12 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 			break
 
 		default:
-			u.Logln("ExecIr: Error unhandeld InstructionType.")
+			u.Logf("ExecIr: Error unhandeld InstructionType: %v", inst.Type)
 			// TODO: Error out.
 			break
 		}
 
-		// If we dont check all instructions we skip the setting of the writer.
+		// If we dont check all t_insts we skip the setting of the writer.
 		// Then a edge case appears where if non of the lines are matched.
 		// We stick with the default CSV writer.
 		// if skip {
@@ -346,6 +440,22 @@ func (this *IrVm) ExecIr(instructions InstructionList) error {
 		}
 
 		this.Fmt.AddRow(row)
+	}
+
+	return nil
+}
+
+func (this *IrVm) Exec(t_insts InstructionList) error {
+	rows := this.Table.RowsData
+	for index, _ := range rows {
+		// Update the virtual machines row index.
+		this.Index = index
+
+		// Execute t_insts for current line.
+		err := this.ExecIr(&t_insts)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

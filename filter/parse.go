@@ -19,17 +19,17 @@ var (
 )
 
 // Import these as we use them frequently.
-type InstPtr *ir.Instruction
-type InstListPtr *ir.InstructionList
+type InstList = ir.InstructionList
+
+type InstPtr = *ir.Instruction
+type InstListPtr = *InstList
 
 type parseFnInst = func(*TokenStream) (InstPtr, error)
-type parseFnInstList = func(*TokenStream) (InstListPtr, error)
 
-type ValuePtr *ir.Value
-type ValueListPtr *ir.ValueList
+type ValuePtr = *ir.Value
+type ValueListPtr = *ir.ValueList
 
 type parseFnValue = func(*TokenStream) (ValuePtr, error)
-type parseFnValueList = func(*TokenStream) (ValueListPtr, error)
 
 // TODO: Implement.
 func errInstructionEmpty(t_location string) error {
@@ -52,6 +52,29 @@ func errWriteDirective(t_location string) error {
 	return fmt.Errorf("After a write directive end of stream is expected in %s (%w)", t_location, ErrWriteDirective)
 }
 
+// We need a pointer to a pointer to modify it.
+func addInstruction(t_insts *InstListPtr, t_inst InstPtr) error {
+	if t_inst == nil {
+		panic("InstructionList pointer is nil!")
+	}
+
+	if t_inst == nil {
+		panic("Instruction is nil!")
+	}
+
+	// Init the instruction list.
+	if *t_insts == nil {
+		list := ir.InitInstructionList()
+
+		*t_insts = &list
+	}
+
+	// Push back the value.
+	(*t_insts).PushBack(t_inst)
+
+	return nil
+}
+
 // Should be used in conjunction with defer.
 func logUnlessNil[T any](t_preabmle string, t_ptr *T) {
 	if t_ptr != nil {
@@ -67,7 +90,7 @@ func validPtr[T any](t_ptr *T, t_err error) bool {
 
 // TODO: Refactor two instances of parseLists.
 func parseList(t_stream *TokenStream, t_fn parseFnInst, t_sep TokenType) (InstListPtr, error) {
-	var list InstListPtr = new(ir.InstructionList)
+	var list InstListPtr
 	defer func() { logUnlessNil("parseList", list) }()
 
 	for {
@@ -78,7 +101,8 @@ func parseList(t_stream *TokenStream, t_fn parseFnInst, t_sep TokenType) (InstLi
 
 		// If the inst is not nil we found an item.
 		if inst != nil {
-			*list = append(*list, *inst)
+			// Add instruction to the list.
+			addInstruction(&list, inst)
 		} else {
 			break
 		}
@@ -97,7 +121,6 @@ func parseList(t_stream *TokenStream, t_fn parseFnInst, t_sep TokenType) (InstLi
 				// If after the separator we get an eos this unexpected.
 				if t_stream.Eos() {
 					return list, errUnexpectedEos("parseList")
-					break
 				}
 			} else {
 				break
@@ -618,7 +641,7 @@ func program(t_stream *TokenStream) (InstListPtr, error) {
 // Source code to parse.
 func Parse(t_stream *TokenStream) (InstListPtr, error) {
 	var (
-		list = new(ir.InstructionList)
+		list InstListPtr
 		err  error
 	)
 
@@ -636,12 +659,13 @@ func Parse(t_stream *TokenStream) (InstListPtr, error) {
 		vlist := new(ir.ValueList)
 		csv := ir.InitInstructionByList(ir.Csv, *vlist)
 
-		*list = append(*list, csv)
+		// Add instruction to the list.
+		addInstruction(&list, &csv)
 
 		u.Logln("No tokens found, using default csv output writer.")
 	}
 
-	u.Logf("Instructions: %v", *list)
+	u.Logf("Instructions: %+v", list.String())
 
 	return list, nil
 }
