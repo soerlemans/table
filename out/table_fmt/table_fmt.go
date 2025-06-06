@@ -12,18 +12,21 @@ type TableFmtPtr = *TableFmt
 const (
 	HEAD_UNSET = -1
 	TAIL_UNSET = -1
+	SORT_UNSET = -1
 )
 
 // Format output.
 type TableFmt interface {
 	GetLabel() string
 
+	// Order related:
 	// Determines which columns should be printed and in what order.
 	// No defined order results in printing all columns in their default order.
 	SetOrder(t_order []int)
 	GetOrder() []int
 	ClearOrder()
 
+	// Bounds related:
 	SetHead(t_count int)
 	GetHead() int
 	ClearHead()
@@ -34,14 +37,26 @@ type TableFmt interface {
 
 	InBounds(t_index int) bool
 
+	// Sorting related:
+	SetSort(t_col int)
+	GetSort() int
+	ClearSort()
+
+	SetNumericSort(t_col int)
+	GetNumericSort() int
+	ClearNumericSort()
+
+	// Primary data related:
 	SetHeaders(headers td.TableDataRow)
 	GetHeaders() td.TableDataRow
+
 	SetRows(t_rows []td.TableDataRow)
 	GetRows() []td.TableDataRow
 
 	AddRow(t_row td.TableDataRow)
 	RowLen() int
 
+	// Copying over:
 	Copy(t_fmt TableFmt) error
 
 	Write() error
@@ -121,7 +136,7 @@ func (this *BaseTableFmt) ClearTail() {
 func (this *BaseTableFmt) InBounds(t_index int) bool {
 	// Default we are always inbounds.
 	var (
-		inBound = false
+		inBound     = false
 		headInBound = false
 		tailInBound = false
 	)
