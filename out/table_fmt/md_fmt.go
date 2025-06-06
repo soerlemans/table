@@ -92,8 +92,14 @@ func (this *MdFmt) printTableHeaderSep() error {
 }
 
 func (this *MdFmt) printTableRows() error {
+
 	// Print per row.
-	for _, row := range this.Rows {
+	for index, row := range this.Rows {
+		// Skip if we are not in bounds.
+		if !this.InBounds(index) {
+			continue
+		}
+
 		// Print cells of the row.
 		err := this.printRow(row)
 		if err != nil {
@@ -125,6 +131,8 @@ func (this *MdFmt) Write() error {
 
 // Generic copying functionality.
 func (this *MdFmt) Copy(t_fmt TableFmt) error {
+	// We need to enforce the shadowed fucntions of the MdFmt struct.
+	// Not the BaseTableFmt Copy().
 	this.Label = t_fmt.GetLabel()
 
 	headers := t_fmt.GetHeaders()
@@ -133,8 +141,14 @@ func (this *MdFmt) Copy(t_fmt TableFmt) error {
 	rows := t_fmt.GetRows()
 	this.SetRows(rows)
 
-	mask := t_fmt.GetOrder()
-	this.SetOrder(mask)
+	order := t_fmt.GetOrder()
+	this.SetOrder(order)
+
+	head := t_fmt.GetHead()
+	this.SetHead(head)
+
+	tail := t_fmt.GetTail()
+	this.SetTail(tail)
 
 	return nil
 }
@@ -144,6 +158,8 @@ func InitMdFmt(t_label string) (MdFmt, error) {
 
 	fmt_.Label = t_label
 	fmt_.ColWidth = make(map[int]int)
+	fmt_.Head = HEAD_UNSET
+	fmt_.Tail = TAIL_UNSET
 
 	return fmt_, nil
 }

@@ -90,6 +90,8 @@ func InitHtmlFmt(t_label string) (HtmlFmt, error) {
 	fmt_ := HtmlFmt{}
 
 	fmt_.Label = t_label
+	fmt_.Head = HEAD_UNSET
+	fmt_.Tail = TAIL_UNSET
 
 	return fmt_, nil
 }

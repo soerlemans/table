@@ -54,6 +54,8 @@ func InitJsonFmt(t_label string) (JsonFmt, error) {
 	fmt_ := JsonFmt{}
 
 	fmt_.Label = t_label
+	fmt_.Head = HEAD_UNSET
+	fmt_.Tail = TAIL_UNSET
 
 	return fmt_, nil
 }

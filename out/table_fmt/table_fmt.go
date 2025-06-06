@@ -1,10 +1,16 @@
 package table_fmt
 
 import (
+	"fmt"
 	td "github.com/soerlemans/table/table_data"
 )
 
 type TableFmtPtr = *TableFmt
+
+const (
+	HEAD_UNSET = -1
+	TAIL_UNSET = -1
+)
 
 // Format output.
 type TableFmt interface {
@@ -16,8 +22,15 @@ type TableFmt interface {
 	GetOrder() []int
 	ClearOrder()
 
-	// SetHead(t_count int)
-	// SetTail(t_count int)
+	SetHead(t_count int)
+	GetHead() int
+	ClearHead()
+
+	SetTail(t_count int)
+	GetTail() int
+	ClearTail()
+
+	InBounds(t_index int) bool
 
 	SetHeaders(headers td.TableDataRow)
 	GetHeaders() td.TableDataRow
@@ -25,6 +38,8 @@ type TableFmt interface {
 	GetRows() []td.TableDataRow
 
 	AddRow(t_row td.TableDataRow)
+	RowLen() int
+
 	Copy(t_fmt TableFmt) error
 
 	Write() error
@@ -38,6 +53,9 @@ type BaseTableFmt struct {
 	// Determines order of the columns, as well as which columns to print.
 	// If empty will print all columns in their regular format.
 	Order []int
+
+	Head int
+	Tail int
 
 	// We need to calculate the max column width for every entry.
 	Headers td.TableDataRow
@@ -73,6 +91,67 @@ func (this *BaseTableFmt) ClearOrder() {
 	this.Order = nil
 }
 
+func (this *BaseTableFmt) SetHead(t_count int) {
+	this.Head = t_count
+}
+
+func (this *BaseTableFmt) GetHead() int {
+	return this.Head
+}
+
+func (this *BaseTableFmt) ClearHead() {
+	this.Head = HEAD_UNSET
+}
+
+func (this *BaseTableFmt) SetTail(t_count int) {
+	this.Tail = t_count
+}
+
+func (this *BaseTableFmt) GetTail() int {
+	return this.Tail
+}
+
+func (this *BaseTableFmt) ClearTail() {
+	this.Tail = TAIL_UNSET
+}
+
+// Check if a certain row index is in bounds of the head and tail.
+func (this *BaseTableFmt) InBounds(t_index int) bool {
+	// Default we are always inbounds.
+	result := true
+
+	head := this.GetHead()
+	tail := this.GetTail()
+
+	rowCount := this.RowLen()
+
+	if t_index < 0 {
+		msg := fmt.Sprintf("Index error (index:%d < 0)!", t_index)
+		panic(msg)
+	}
+
+	if t_index >= rowCount {
+		msg := fmt.Sprintf("Index error (index:%d >= rowCount:%d)!", t_index, rowCount)
+		panic(msg)
+	}
+
+	// Any negative values are seen as being unset.
+	if head > HEAD_UNSET {
+		// If the index is below the head count we are in bounds.
+		result = (t_index < head)
+	}
+
+	if tail > TAIL_UNSET {
+		// We need to subtract here to account for zero index-ation.
+		tailBound := (rowCount - 1) - tail
+
+		// If the index is above the tailBound we are in bounds.
+		result = (t_index > tailBound)
+	}
+
+	return result
+}
+
 func (this *BaseTableFmt) SetHeaders(t_headers td.TableDataRow) {
 	this.Headers = t_headers
 }
@@ -93,6 +172,10 @@ func (this *BaseTableFmt) AddRow(t_row td.TableDataRow) {
 	this.Rows = append(this.Rows, t_row)
 }
 
+func (this *BaseTableFmt) RowLen() int {
+	return len(this.Rows)
+}
+
 // Generic copying functionality.
 func (this *BaseTableFmt) Copy(t_fmt TableFmt) error {
 	this.Label = t_fmt.GetLabel()
@@ -103,8 +186,14 @@ func (this *BaseTableFmt) Copy(t_fmt TableFmt) error {
 	rows := t_fmt.GetRows()
 	this.SetRows(rows)
 
-	mask := t_fmt.GetOrder()
-	this.SetOrder(mask)
+	order := t_fmt.GetOrder()
+	this.SetOrder(order)
+
+	head := t_fmt.GetHead()
+	this.SetHead(head)
+
+	tail := t_fmt.GetTail()
+	this.SetTail(tail)
 
 	return nil
 }

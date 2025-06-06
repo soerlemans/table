@@ -13,6 +13,9 @@ type VmPtr = *IrVm
 
 // Short of intermediary representation virtual machine.
 type IrVm struct {
+	// Is overwritten everytime you run Exec().
+	Instructions InstructionList
+
 	VariableStore map[string]string
 
 	Index int
@@ -292,6 +295,12 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		if err != nil {
 			return err
 		}
+
+		// The formatter does not need to be set every iteration.
+		// To optimize we only set it once, as only one output format is allowed.
+		// This prevents the costly copying and execution of this instruction.
+		// More than once.
+		this.Instructions.Remove(t_elem)
 	}
 
 	return nil
@@ -342,7 +351,38 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			}
 			break
 
-		// TODO: Move these to somewhere else.
+			// TODO: Move somewhere else.
+		case Head:
+			val := inst.Operands[0]
+			resolved, err := this.resolveValue(val)
+			if err != nil {
+				return err
+			}
+
+			num, err := toInt(resolved)
+			if err != nil {
+				return err
+			}
+
+			this.Fmt.SetHead(num)
+			break
+
+		case Tail:
+			val := inst.Operands[0]
+			resolved, err := this.resolveValue(val)
+			if err != nil {
+				return err
+			}
+
+			num, err := toInt(resolved)
+			if err != nil {
+				return err
+			}
+
+			this.Fmt.SetTail(num)
+			break
+
+			// Output specifiers:
 		case Csv:
 			fallthrough
 		case Md:
@@ -380,6 +420,10 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 }
 
 func (this *IrVm) Exec(t_insts InstructionList) error {
+	// Set the instructions for execution.
+	// This is used when removing instructions that do not need to be re-executed.
+	this.Instructions = t_insts
+
 	rows := this.Table.RowsData
 	for index, _ := range rows {
 		// Update the virtual machines row index.
@@ -404,6 +448,7 @@ func InitIrVm(t_table *td.TableData) (IrVm, error) {
 	defer func() { u.LogStructName("InitIrVm", vm, u.ETC80) }()
 
 	// Do init.
+	vm.Instructions = InitInstructionList()
 	vm.VariableStore = make(map[string]string)
 	vm.Table = t_table
 

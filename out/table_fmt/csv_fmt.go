@@ -61,6 +61,8 @@ func InitCsvFmt(t_label string) (CsvFmt, error) {
 	fmt_ := CsvFmt{}
 
 	fmt_.Label = t_label
+	fmt_.Head = HEAD_UNSET
+	fmt_.Tail = TAIL_UNSET
 
 	return fmt_, nil
 }
