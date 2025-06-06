@@ -13,7 +13,7 @@ type JsonFmt struct {
 
 func (this *JsonFmt) printRow(t_row td.TableDataRow) error {
 	var sep string
-	order := this.ColumnOrder()
+	order := this.GetOrder()
 
 	fmt.Printf("{ ")
 	for _, index := range order {
@@ -54,7 +54,6 @@ func InitJsonFmt(t_label string) (JsonFmt, error) {
 	fmt_ := JsonFmt{}
 
 	fmt_.Label = t_label
-	fmt_.ColMask = make(map[int]bool)
 
 	return fmt_, nil
 }

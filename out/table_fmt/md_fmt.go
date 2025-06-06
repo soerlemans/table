@@ -51,7 +51,7 @@ func (this *MdFmt) AddRow(t_row td.TableDataRow) {
 }
 
 func (this *MdFmt) printRow(t_row td.TableDataRow) error {
-	order := this.ColumnOrder()
+	order := this.GetOrder()
 
 	for _, index := range order {
 		cell := t_row[index]
@@ -74,7 +74,7 @@ func (this *MdFmt) printTableHeader() error {
 }
 
 func (this *MdFmt) printTableHeaderSep() error {
-	order := this.ColumnOrder()
+	order := this.GetOrder()
 
 	for _, index := range order {
 		colWidth, ok := this.ColWidth[index]
@@ -133,8 +133,8 @@ func (this *MdFmt) Copy(t_fmt TableFmt) error {
 	rows := t_fmt.GetRows()
 	this.SetRows(rows)
 
-	mask := t_fmt.GetMask()
-	this.SetMask(mask)
+	mask := t_fmt.GetOrder()
+	this.SetOrder(mask)
 
 	return nil
 }
@@ -144,7 +144,6 @@ func InitMdFmt(t_label string) (MdFmt, error) {
 
 	fmt_.Label = t_label
 	fmt_.ColWidth = make(map[int]int)
-	fmt_.ColMask = make(map[int]bool)
 
 	return fmt_, nil
 }

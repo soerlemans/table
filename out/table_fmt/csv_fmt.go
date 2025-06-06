@@ -12,7 +12,7 @@ type CsvFmt struct {
 }
 
 func (this *CsvFmt) printRow(t_row td.TableDataRow) error {
-	order := this.ColumnOrder()
+	order := this.GetOrder()
 
 	var sep string
 	for _, index := range order {
@@ -61,7 +61,6 @@ func InitCsvFmt(t_label string) (CsvFmt, error) {
 	fmt_ := CsvFmt{}
 
 	fmt_.Label = t_label
-	fmt_.ColMask = make(map[int]bool)
 
 	return fmt_, nil
 }

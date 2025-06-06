@@ -33,7 +33,7 @@ func indent(t_level IdentLevel, t_fmt string, t_args ...interface{}) {
 }
 
 func (this *HtmlFmt) printRow(t_tag string, t_row td.TableDataRow) error {
-	order := this.ColumnOrder()
+	order := this.GetOrder()
 
 	indent(Row, "<tr>")
 	for _, index := range order {
@@ -90,7 +90,6 @@ func InitHtmlFmt(t_label string) (HtmlFmt, error) {
 	fmt_ := HtmlFmt{}
 
 	fmt_.Label = t_label
-	fmt_.ColMask = make(map[int]bool)
 
 	return fmt_, nil
 }

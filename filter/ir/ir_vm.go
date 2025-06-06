@@ -206,7 +206,7 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 	return result, nil
 }
 
-func (this *IrVm) applyFmtMask(t_inst *Instruction) error {
+func (this *IrVm) applyFmtColOrder(t_inst *Instruction) error {
 	// Get operands from the instruction.
 	colNames, err := this.resolveValues(t_inst.Operands)
 	if err != nil {
@@ -214,13 +214,13 @@ func (this *IrVm) applyFmtMask(t_inst *Instruction) error {
 	}
 
 	// Convert column names to indices.
-	indices, err := this.Table.ColNamesToIndices(colNames)
+	order, err := this.Table.ColNamesToIndices(colNames)
 	if err != nil {
 		return err
 	}
 
-	// Apply the mask.
-	this.Fmt.SetMask(indices)
+	// Apply the order.
+	this.Fmt.SetOrder(order)
 
 	return nil
 }
@@ -288,7 +288,7 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		this.Fmt = newFmt
 
 		// Apply format mask.
-		err := this.applyFmtMask(inst)
+		err := this.applyFmtColOrder(inst)
 		if err != nil {
 			return err
 		}
