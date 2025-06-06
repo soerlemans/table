@@ -15,7 +15,10 @@ type TableFmt interface {
 	GetMask() []int
 
 	ClearMask()
-	ColumnMasked(t_colIndex int) bool
+	ColumnOrder() []int
+
+	// SetHead(t_count int)
+	// SetTail(t_count int)
 
 	SetHeaders(headers td.TableDataRow)
 	GetHeaders() td.TableDataRow
@@ -33,6 +36,8 @@ type TableFmt interface {
 type BaseTableFmt struct {
 	Label string
 
+	// Order and the column mask are tied closely together.
+	Order   []int
 	ColMask map[int]bool
 
 	// We need to calculate the max column width for every entry.
@@ -47,6 +52,9 @@ func (this *BaseTableFmt) GetLabel() string {
 // Mark columns to print during write.
 func (this *BaseTableFmt) SetMask(t_mask []int) {
 	this.ClearMask()
+
+	// The mask also determined the order.
+	this.Order = t_mask
 
 	// TODO: Error handle non existent column indices (for now ignore).
 	for _, value := range t_mask {
@@ -67,21 +75,23 @@ func (this *BaseTableFmt) GetMask() []int {
 }
 
 func (this *BaseTableFmt) ClearMask() {
-	// Clear by assigning a new one.
+	// Clear the order and column mask.
+	this.Order = nil
 	this.ColMask = make(map[int]bool)
 }
 
-func (this *BaseTableFmt) ColumnMasked(t_colIndex int) bool {
-	// Guard clause (the mask has no elements then print everything).
-	// As we should always print atleast one column.
-	if len(this.ColMask) == 0 {
-		return true
+func (this *BaseTableFmt) ColumnOrder() []int {
+	order := this.Order
+
+	// If no order is set, just use the normal ordering.
+	if order == nil {
+		order = make([]int, len(this.Headers))
+		for i := range this.Headers {
+			order[i] = i
+		}
 	}
 
-	// We use the map as a set.
-	_, ok := this.ColMask[t_colIndex]
-
-	return ok
+	return order
 }
 
 func (this *BaseTableFmt) SetHeaders(t_headers td.TableDataRow) {

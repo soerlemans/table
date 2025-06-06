@@ -12,13 +12,14 @@ type CsvFmt struct {
 }
 
 func (this *CsvFmt) printRow(t_row td.TableDataRow) error {
-	var sep string
-	for index, cell := range t_row {
-		if this.ColumnMasked(index) {
-			fmt.Printf("%s%s", sep, cell)
+	order := this.ColumnOrder()
 
-			sep = ","
-		}
+	var sep string
+	for _, index := range order {
+		cell := t_row[index]
+		fmt.Printf("%s%s", sep, cell)
+
+		sep = ","
 	}
 	fmt.Println()
 

@@ -33,13 +33,13 @@ func indent(t_level IdentLevel, t_fmt string, t_args ...interface{}) {
 }
 
 func (this *HtmlFmt) printRow(t_tag string, t_row td.TableDataRow) error {
-	indent(Row, "<tr>")
-	for index, cell := range t_row {
-		// Check if the column is selected.
-		if this.ColumnMasked(index) {
+	order := this.ColumnOrder()
 
-			indent(Cell, "<%s> %s </%s>", t_tag, cell, t_tag)
-		}
+	indent(Row, "<tr>")
+	for _, index := range order {
+		cell := t_row[index]
+
+		indent(Cell, "<%s> %s </%s>", t_tag, cell, t_tag)
 	}
 	indent(Row, "</tr>")
 

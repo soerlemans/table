@@ -13,16 +13,15 @@ type JsonFmt struct {
 
 func (this *JsonFmt) printRow(t_row td.TableDataRow) error {
 	var sep string
+	order := this.ColumnOrder()
 
 	fmt.Printf("{ ")
-	for index, colName := range this.Headers {
-		if this.ColumnMasked(index) {
-			cell := t_row[index]
+	for _, index := range order {
+		colName := this.Headers[index]
+		value := t_row[index]
 
-			fmt.Printf("%s\"%s\": \"%s\"", sep, colName, cell)
-
-			sep = ", "
-		}
+		fmt.Printf("%s\"%s\": \"%s\"", sep, colName, value)
+		sep = ", "
 	}
 	fmt.Println(" }")
 

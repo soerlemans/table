@@ -51,16 +51,18 @@ func (this *MdFmt) AddRow(t_row td.TableDataRow) {
 }
 
 func (this *MdFmt) printRow(t_row td.TableDataRow) error {
-	for index, cell := range t_row {
+	order := this.ColumnOrder()
+
+	for _, index := range order {
+		cell := t_row[index]
+
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
 			// TODO: Return err.
 		}
 
 		// Check if the column is selected.
-		if this.ColumnMasked(index) {
-			fmt.Printf("| %-*s ", colWidth, cell)
-		}
+		fmt.Printf("| %-*s ", colWidth, cell)
 	}
 	fmt.Println("|")
 
@@ -72,17 +74,17 @@ func (this *MdFmt) printTableHeader() error {
 }
 
 func (this *MdFmt) printTableHeaderSep() error {
-	for index, _ := range this.Headers {
+	order := this.ColumnOrder()
+
+	for _, index := range order {
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
 			// TODO: Return err.
 		}
 
 		// Check if the column is selected.
-		if this.ColumnMasked(index) {
-			colSep := strings.Repeat("-", colWidth)
-			fmt.Printf("| %s ", colSep)
-		}
+		colSep := strings.Repeat("-", colWidth)
+		fmt.Printf("| %s ", colSep)
 	}
 	fmt.Println("|")
 
