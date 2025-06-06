@@ -2,7 +2,9 @@ package table_fmt
 
 import (
 	"fmt"
+
 	td "github.com/soerlemans/table/table_data"
+	u "github.com/soerlemans/table/util"
 )
 
 type TableFmtPtr = *TableFmt
@@ -118,7 +120,11 @@ func (this *BaseTableFmt) ClearTail() {
 // Check if a certain row index is in bounds of the head and tail.
 func (this *BaseTableFmt) InBounds(t_index int) bool {
 	// Default we are always inbounds.
-	result := true
+	var (
+		inBound = false
+		headInBound = false
+		tailInBound = false
+	)
 
 	head := this.GetHead()
 	tail := this.GetTail()
@@ -138,18 +144,28 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 	// Any negative values are seen as being unset.
 	if head > HEAD_UNSET {
 		// If the index is below the head count we are in bounds.
-		result = (t_index < head)
+		headInBound = (t_index < head)
+		u.Logf("InBounds: %v = %d < %d", headInBound, t_index, head)
+	} else {
+		headInBound = true
 	}
 
 	if tail > TAIL_UNSET {
-		// We need to subtract here to account for zero index-ation.
+		// We need to subtract one here to account for zero index-ation.
 		tailBound := (rowCount - 1) - tail
 
 		// If the index is above the tailBound we are in bounds.
-		result = (t_index > tailBound)
+		tailInBound = (t_index > tailBound)
+		u.Logf("InBounds: %v = %d > %d", tailInBound, t_index, tailBound)
+	} else {
+		tailInBound = true
 	}
 
-	return result
+	if headInBound || tailInBound {
+		inBound = true
+	}
+
+	return inBound
 }
 
 func (this *BaseTableFmt) SetHeaders(t_headers td.TableDataRow) {

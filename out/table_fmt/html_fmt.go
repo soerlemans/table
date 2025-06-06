@@ -57,7 +57,12 @@ func (this *HtmlFmt) printTableHeader() error {
 func (this *HtmlFmt) printTableRows() error {
 	indent(Section, "<tbody>")
 	// Print per row.
-	for _, row := range this.Rows {
+	for index, row := range this.Rows {
+		// Skip if we are not in bounds.
+		if !this.InBounds(index) {
+			continue
+		}
+
 		// Print cells of the row.
 		err := this.printRow("tr", row)
 		if err != nil {

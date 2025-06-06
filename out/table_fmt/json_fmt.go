@@ -30,7 +30,12 @@ func (this *JsonFmt) printRow(t_row td.TableDataRow) error {
 
 func (this *JsonFmt) printTableRows() error {
 	// Print per row.
-	for _, row := range this.Rows {
+	for index, row := range this.Rows {
+		// Skip if we are not in bounds.
+		if !this.InBounds(index) {
+			continue
+		}
+
 		// Print cells of the row.
 		err := this.printRow(row)
 		if err != nil {
