@@ -144,12 +144,6 @@ func (this *MdFmt) Copy(t_fmt TableFmt) error {
 	order := t_fmt.GetOrder()
 	this.SetOrder(order)
 
-	sortCol := t_fmt.GetSort()
-	this.SetSort(sortCol)
-
-	numSortCol := t_fmt.GetNumericSort()
-	this.SetNumericSort(numSortCol)
-
 	head := t_fmt.GetHead()
 	this.SetHead(head)
 

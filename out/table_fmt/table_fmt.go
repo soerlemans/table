@@ -2,6 +2,7 @@ package table_fmt
 
 import (
 	"fmt"
+	"sort"
 
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
@@ -12,7 +13,6 @@ type TableFmtPtr = *TableFmt
 const (
 	HEAD_UNSET = -1
 	TAIL_UNSET = -1
-	SORT_UNSET = -1
 )
 
 // Format output.
@@ -38,13 +38,8 @@ type TableFmt interface {
 	InBounds(t_index int) bool
 
 	// Sorting related:
-	SetSort(t_col int)
-	GetSort() int
-	ClearSort()
-
-	SetNumericSort(t_col int)
-	GetNumericSort() int
-	ClearNumericSort()
+	Sort(t_col int)
+	NumericSort(t_col int)
 
 	// Primary data related:
 	SetHeaders(headers td.TableDataRow)
@@ -70,10 +65,6 @@ type BaseTableFmt struct {
 	// Determines order of the columns, as well as which columns to print.
 	// If empty will print all columns in their regular format.
 	Order []int
-
-	// Check which columns to sort.
-	SortCol        int
-	NumericSortCol int
 
 	Head int
 	Tail int
@@ -188,31 +179,22 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 }
 
 // Sorting related:
-func (this *BaseTableFmt) SetSort(t_col int) {
-	this.SortCol = t_col
+func (this *BaseTableFmt) Sort(t_col int) {
+	less := func(index1, index2 int) bool {
+		return this.Rows[index1][t_col] < this.Rows[index2][t_col]
+	}
+
+	// Use sort.Slice with a custom less function
+	sort.Slice(this.Rows, less)
 }
 
-func (this *BaseTableFmt) GetSort() int {
-	return this.SortCol
-}
+func (this *BaseTableFmt) NumericSort(t_col int) {
+	less := func(index1, index2 int) bool {
+		return this.Rows[index1][t_col] < this.Rows[index2][t_col]
+	}
 
-func (this *BaseTableFmt) ClearSort() {
-	this.SortCol = SORT_UNSET
-}
-
-func (this *BaseTableFmt) Sort() {
-}
-
-func (this *BaseTableFmt) SetNumericSort(t_col int) {
-	this.NumericSortCol = t_col
-}
-
-func (this *BaseTableFmt) GetNumericSort() int {
-	return this.NumericSortCol
-}
-
-func (this *BaseTableFmt) ClearNumericSort() {
-	this.NumericSortCol = SORT_UNSET
+	// Use sort.Slice with a custom less function
+	sort.Slice(this.Rows, less)
 }
 
 func (this *BaseTableFmt) SetHeaders(t_headers td.TableDataRow) {
@@ -252,12 +234,6 @@ func (this *BaseTableFmt) Copy(t_fmt TableFmt) error {
 
 	order := t_fmt.GetOrder()
 	this.SetOrder(order)
-
-	sortCol := t_fmt.GetSort()
-	this.SetSort(sortCol)
-
-	numSortCol := t_fmt.GetNumericSort()
-	this.SetNumericSort(numSortCol)
 
 	head := t_fmt.GetHead()
 	this.SetHead(head)
