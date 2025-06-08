@@ -1,6 +1,7 @@
 package table_fmt
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -12,11 +13,19 @@ const (
 	MdRowSep = '-'
 )
 
+var (
+	ErrColWidthIndex = errors.New("Column width index does not exist.")
+)
+
 type MdFmt struct {
 	// Includes base data and methods.
 	BaseTableFmt
 
 	ColWidth map[int]int
+}
+
+func (this *MdFmt) errColWidthIndex(t_index int) error {
+	return fmt.Errorf("No %d index in ColWidth %+v (%w)", t_index, this.ColWidth, ErrColWidthIndex)
 }
 
 func (this *MdFmt) updateColWidth(t_row td.TableDataRow) {
@@ -59,7 +68,7 @@ func (this *MdFmt) printRow(t_row td.TableDataRow) error {
 
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
-			// TODO: Return err.
+			return this.errColWidthIndex(index)
 		}
 
 		// Check if the column is selected.
@@ -80,7 +89,7 @@ func (this *MdFmt) printTableHeaderSep() error {
 	for _, index := range order {
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
-			// TODO: Return err.
+			return this.errColWidthIndex(index)
 		}
 
 		// Check if the column is selected.

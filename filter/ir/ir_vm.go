@@ -257,7 +257,7 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 
 	switch instType {
 	case Csv:
-		u.Logln("ExecIr: Switching to csv fmt.")
+		u.Logln("ExecFmt: Switching to csv fmt.")
 		csv, err := tf.InitCsvFmt(label)
 		if err != nil {
 			return err
@@ -266,7 +266,7 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		break
 
 	case Md:
-		u.Logln("ExecIr: Switching to md fmt.")
+		u.Logln("ExecFmt: Switching to md fmt.")
 		md, err := tf.InitMdFmt(label)
 		if err != nil {
 			return err
@@ -276,7 +276,7 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		break
 
 	case Pretty:
-		u.Logln("ExecIr: Switching to pretty fmt.")
+		u.Logln("ExecFmt: Switching to pretty fmt.")
 		md, err := tf.InitPrettyFmt(label)
 		if err != nil {
 			return err
@@ -286,7 +286,7 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		break
 
 	case Json:
-		u.Logln("ExecIr: Switching to json fmt.")
+		u.Logln("ExecFmt: Switching to json fmt.")
 		json_, err := tf.InitJsonFmt(label)
 		if err != nil {
 			return err
@@ -296,7 +296,7 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		break
 
 	case Html:
-		u.Logln("ExecIr: Switching to html fmt.")
+		u.Logln("ExecFmt: Switching to html fmt.")
 		html_, err := tf.InitHtmlFmt(label)
 		if err != nil {
 			return err
