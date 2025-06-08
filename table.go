@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sync"
 
 	f "github.com/soerlemans/table/filter"
@@ -35,7 +36,10 @@ func run(t_args Arguments) error {
 			ctx := initProcessContext(&filter, table)
 
 			// Start processing.
-			Process(ctx)
+			err := Process(ctx)
+			if err != nil {
+				log.Fatalln(err)
+			}
 
 			wg.Done()
 		}

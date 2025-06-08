@@ -490,7 +490,7 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 			inst = &sort_
 		} else {
 			// We must receive an argument for head.
-			return inst, errExpectedString("keyword", "Number or identifier")
+			return inst, errExpectedString("keyword", "String containing a column name")
 		}
 		break
 
@@ -506,7 +506,7 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 			inst = &numSort
 		} else {
 			// We must receive an argument for head.
-			return inst, errExpectedString("keyword", "Number or identifier")
+			return inst, errExpectedString("keyword", "String containing a column name")
 		}
 		break
 

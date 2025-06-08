@@ -209,7 +209,7 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 	return result, nil
 }
 
-func (this *IrVm) valueType2ColIndex(t_val Value) (int, error) {
+func (this *IrVm) ValueToColIndex(t_val Value) (int, error) {
 	var index int
 
 	// Get operands from the instruction.
@@ -227,23 +227,22 @@ func (this *IrVm) valueType2ColIndex(t_val Value) (int, error) {
 	return index, nil
 }
 
-func (this *IrVm) applyFmtColOrder(t_inst *Instruction) error {
+func (this *IrVm) ValueToColIndices(t_inst *Instruction) ([]int, error) {
+	var order []int
+
 	// Get operands from the instruction.
 	colNames, err := this.resolveValues(t_inst.Operands)
 	if err != nil {
-		return err
+		return order, err
 	}
 
 	// Convert column names to indices.
-	order, err := this.Table.ColNamesToIndices(colNames)
+	order, err = this.Table.ColNamesToIndices(colNames)
 	if err != nil {
-		return err
+		return order, err
 	}
 
-	// Apply the order.
-	this.Fmt.SetOrder(order)
-
-	return nil
+	return order, nil
 }
 
 // Change the output table format, and remove the instruction from the list.
@@ -309,10 +308,13 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		this.Fmt = newFmt
 
 		// Apply format mask.
-		err := this.applyFmtColOrder(inst)
+		order, err := this.ValueToColIndices(inst)
 		if err != nil {
 			return err
 		}
+
+		// Apply the order of the columns.
+		this.Fmt.SetOrder(order)
 
 		// The formatter does not need to be set every iteration.
 		// To optimize we only set it once, as only one output format is allowed.
@@ -371,34 +373,26 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 
 			// TODO: Move somewhere else.
 		case Sort:
+			u.Logln("ExecIr: Applying sort.")
 			val := inst.Operands[0]
-			resolved, err := this.resolveValue(val)
+			index, err := this.ValueToColIndex(val)
 			if err != nil {
 				return err
 			}
 
-			num, err := toInt(resolved)
-			if err != nil {
-				return err
-			}
-
-			this.Fmt.SetSort(num)
+			this.Fmt.SetSort(index)
 			break
 
 			// TODO: Move somewhere else.
 		case NumericSort:
+			u.Logln("ExecIr: Applying numeric sort.")
 			val := inst.Operands[0]
-			resolved, err := this.resolveValue(val)
+			index, err := this.ValueToColIndex(val)
 			if err != nil {
 				return err
 			}
 
-			num, err := toInt(resolved)
-			if err != nil {
-				return err
-			}
-
-			this.Fmt.SetNumericSort(num)
+			this.Fmt.SetNumericSort(index)
 			break
 
 			// TODO: Move somewhere else.
