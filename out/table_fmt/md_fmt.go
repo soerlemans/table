@@ -131,7 +131,7 @@ func (this *MdFmt) Write() error {
 
 // Generic copying functionality.
 func (this *MdFmt) Copy(t_fmt TableFmt) error {
-	// We need to enforce the shadowed fucntions of the MdFmt struct.
+	// We need to enforce the shadowed functions of the MdFmt struct.
 	// Not the BaseTableFmt Copy().
 	this.Label = t_fmt.GetLabel()
 
@@ -143,6 +143,12 @@ func (this *MdFmt) Copy(t_fmt TableFmt) error {
 
 	order := t_fmt.GetOrder()
 	this.SetOrder(order)
+
+	sortCol := t_fmt.GetSort()
+	this.SetSort(sortCol)
+
+	numSortCol := t_fmt.GetNumericSort()
+	this.SetNumericSort(numSortCol)
 
 	head := t_fmt.GetHead()
 	this.SetHead(head)
