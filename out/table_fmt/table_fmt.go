@@ -235,12 +235,16 @@ func (this *BaseTableFmt) NumericSort() {
 		// Convert string to int for the column to sort.
 		num1, err := strconv.Atoi(this.Rows[index1][col])
 		if err != nil {
-			panic(err)
+			// If not a num then we want it at the end.
+			// Then we want the not num at the end.
+			return false
 		}
 
 		num2, err := strconv.Atoi(this.Rows[index2][col])
 		if err != nil {
-			panic(err)
+			// If only the second arg is not a num.
+			// Then we want the not num at the end.
+			return true
 		}
 
 		return num1 < num2

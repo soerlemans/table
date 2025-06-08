@@ -73,6 +73,9 @@ const (
 	// This operation will export the surviving rows to a markdown table.
 	Md
 
+	// This operation will export the surviving rows as a pretty table.
+	Pretty
+
 	// This operation will export the surviving rows to JSON.
 	Json
 
@@ -136,6 +139,8 @@ func (t TokenType) String() string {
 		return "csv"
 	case Md:
 		return "md"
+	case Pretty:
+		return "pretty"
 	case Json:
 		return "json"
 	case Html:

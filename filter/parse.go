@@ -594,6 +594,20 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 		inst = &md
 		break
 
+	case Pretty:
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
+		}
+
+		pretty := ir.InitInstructionByList(ir.Pretty, *list)
+
+		inst = &pretty
+		break
+
 	case Json:
 		t_stream.Next()
 		if !t_stream.Eos() {

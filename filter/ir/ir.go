@@ -34,6 +34,7 @@ const (
 
 	Csv
 	Md
+	Pretty
 	Json
 	Html
 )
@@ -72,6 +73,8 @@ func (t InstructionType) String() string {
 		return "Csv"
 	case Md:
 		return "Md"
+	case Pretty:
+		return "Pretty"
 	case Json:
 		return "Json"
 	case Html:

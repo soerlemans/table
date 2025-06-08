@@ -275,6 +275,16 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		newFmt = &md
 		break
 
+	case Pretty:
+		u.Logln("ExecIr: Switching to pretty fmt.")
+		md, err := tf.InitPrettyFmt(label)
+		if err != nil {
+			return err
+		}
+
+		newFmt = &md
+		break
+
 	case Json:
 		u.Logln("ExecIr: Switching to json fmt.")
 		json_, err := tf.InitJsonFmt(label)
@@ -383,7 +393,6 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			this.Fmt.SetSort(index)
 			break
 
-			// TODO: Move somewhere else.
 		case NumericSort:
 			u.Logln("ExecIr: Applying numeric sort.")
 			val := inst.Operands[0]
@@ -430,6 +439,8 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 		case Csv:
 			fallthrough
 		case Md:
+			fallthrough
+		case Pretty:
 			fallthrough
 		case Json:
 			fallthrough

@@ -8,18 +8,19 @@ import (
 )
 
 const (
-	MdColSep = '|'
-	MdRowSep = '-'
+	PrettyCorner = '+'
+	PrettyColSep = '|'
+	PrettyRowSep = '-'
 )
 
-type MdFmt struct {
+type PrettyFmt struct {
 	// Includes base data and methods.
 	BaseTableFmt
 
 	ColWidth map[int]int
 }
 
-func (this *MdFmt) updateColWidth(t_row td.TableDataRow) {
+func (this *PrettyFmt) updateColWidth(t_row td.TableDataRow) {
 	for i, cell := range t_row {
 		cellWidth := len(cell)
 
@@ -30,13 +31,13 @@ func (this *MdFmt) updateColWidth(t_row td.TableDataRow) {
 	}
 }
 
-func (this *MdFmt) SetHeaders(t_headers td.TableDataRow) {
+func (this *PrettyFmt) SetHeaders(t_headers td.TableDataRow) {
 	this.Headers = t_headers
 
 	this.updateColWidth(t_headers)
 }
 
-func (this *MdFmt) SetRows(t_rows []td.TableDataRow) {
+func (this *PrettyFmt) SetRows(t_rows []td.TableDataRow) {
 	this.Rows = t_rows
 
 	// We need to update the mex column width for every line now.
@@ -45,13 +46,13 @@ func (this *MdFmt) SetRows(t_rows []td.TableDataRow) {
 	}
 }
 
-func (this *MdFmt) AddRow(t_row td.TableDataRow) {
+func (this *PrettyFmt) AddRow(t_row td.TableDataRow) {
 	this.Rows = append(this.Rows, t_row)
 
 	this.updateColWidth(t_row)
 }
 
-func (this *MdFmt) printRow(t_row td.TableDataRow) error {
+func (this *PrettyFmt) printRow(t_row td.TableDataRow) error {
 	order := this.GetOrder()
 
 	for _, index := range order {
@@ -70,11 +71,11 @@ func (this *MdFmt) printRow(t_row td.TableDataRow) error {
 	return nil
 }
 
-func (this *MdFmt) printTableHeader() error {
+func (this *PrettyFmt) printTableHeader() error {
 	return this.printRow(this.Headers)
 }
 
-func (this *MdFmt) printTableHeaderSep() error {
+func (this *PrettyFmt) printTableHeaderSep() error {
 	order := this.GetOrder()
 
 	for _, index := range order {
@@ -85,14 +86,14 @@ func (this *MdFmt) printTableHeaderSep() error {
 
 		// Check if the column is selected.
 		colSep := strings.Repeat("-", colWidth)
-		fmt.Printf("| %s ", colSep)
+		fmt.Printf("+ %s ", colSep)
 	}
-	fmt.Println("|")
+	fmt.Println("+")
 
 	return nil
 }
 
-func (this *MdFmt) printTableRows() error {
+func (this *PrettyFmt) printTableRows() error {
 
 	// Print per row.
 	for index, row := range this.Rows {
@@ -111,10 +112,15 @@ func (this *MdFmt) printTableRows() error {
 	return nil
 }
 
-func (this *MdFmt) Write() error {
+func (this *PrettyFmt) Write() error {
 	this.PerformSort()
 
-	err := this.printTableHeader()
+	err := this.printTableHeaderSep()
+	if err != nil {
+		return err
+	}
+
+	err = this.printTableHeader()
 	if err != nil {
 		return err
 	}
@@ -129,12 +135,17 @@ func (this *MdFmt) Write() error {
 		return err
 	}
 
+	err = this.printTableHeaderSep()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // Generic copying functionality.
-func (this *MdFmt) Copy(t_fmt TableFmt) error {
-	// We need to enforce the shadowed functions of the MdFmt struct.
+func (this *PrettyFmt) Copy(t_fmt TableFmt) error {
+	// We need to enforce the shadowed functions of the PrettyFmt struct.
 	// Not the BaseTableFmt Copy().
 	this.Label = t_fmt.GetLabel()
 
@@ -162,8 +173,8 @@ func (this *MdFmt) Copy(t_fmt TableFmt) error {
 	return nil
 }
 
-func InitMdFmt(t_label string) (MdFmt, error) {
-	fmt_ := MdFmt{}
+func InitPrettyFmt(t_label string) (PrettyFmt, error) {
+	fmt_ := PrettyFmt{}
 
 	fmt_.Label = t_label
 	fmt_.ColWidth = make(map[int]int)
@@ -174,3 +185,4 @@ func InitMdFmt(t_label string) (MdFmt, error) {
 
 	return fmt_, nil
 }
+

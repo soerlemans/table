@@ -65,10 +65,11 @@ var Keywords = map[string]TokenType{
 	"tail": Tail,
 
 	// Writer specifications:
-	"csv":  Csv,
-	"md":   Md,
-	"json": Json,
-	"html": Html,
+	"csv":    Csv,
+	"md":     Md,
+	"pretty": Pretty,
+	"json":   Json,
+	"html":   Html,
 }
 
 // Errors:
