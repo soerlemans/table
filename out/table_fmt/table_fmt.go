@@ -12,18 +12,21 @@ type TableFmtPtr = *TableFmt
 const (
 	HEAD_UNSET = -1
 	TAIL_UNSET = -1
+	SORT_UNSET = -1
 )
 
 // Format output.
 type TableFmt interface {
 	GetLabel() string
 
+	// Order related:
 	// Determines which columns should be printed and in what order.
 	// No defined order results in printing all columns in their default order.
 	SetOrder(t_order []int)
 	GetOrder() []int
 	ClearOrder()
 
+	// Bounds related:
 	SetHead(t_count int)
 	GetHead() int
 	ClearHead()
@@ -34,14 +37,26 @@ type TableFmt interface {
 
 	InBounds(t_index int) bool
 
+	// Sorting related:
+	SetSort(t_col int)
+	GetSort() int
+	ClearSort()
+
+	SetNumericSort(t_col int)
+	GetNumericSort() int
+	ClearNumericSort()
+
+	// Primary data related:
 	SetHeaders(headers td.TableDataRow)
 	GetHeaders() td.TableDataRow
+
 	SetRows(t_rows []td.TableDataRow)
 	GetRows() []td.TableDataRow
 
 	AddRow(t_row td.TableDataRow)
 	RowLen() int
 
+	// Copying over:
 	Copy(t_fmt TableFmt) error
 
 	Write() error
@@ -55,6 +70,10 @@ type BaseTableFmt struct {
 	// Determines order of the columns, as well as which columns to print.
 	// If empty will print all columns in their regular format.
 	Order []int
+
+	// Check which columns to sort.
+	SortCol        int
+	NumericSortCol int
 
 	Head int
 	Tail int
@@ -121,7 +140,7 @@ func (this *BaseTableFmt) ClearTail() {
 func (this *BaseTableFmt) InBounds(t_index int) bool {
 	// Default we are always inbounds.
 	var (
-		inBound = false
+		inBound     = false
 		headInBound = false
 		tailInBound = false
 	)
@@ -168,6 +187,34 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 	return inBound
 }
 
+// Sorting related:
+func (this *BaseTableFmt) SetSort(t_col int) {
+	this.SortCol = t_col
+}
+
+func (this *BaseTableFmt) GetSort() int {
+	return this.SortCol
+}
+
+func (this *BaseTableFmt) ClearSort() {
+	this.SortCol = SORT_UNSET
+}
+
+func (this *BaseTableFmt) Sort() {
+}
+
+func (this *BaseTableFmt) SetNumericSort(t_col int) {
+	this.NumericSortCol = t_col
+}
+
+func (this *BaseTableFmt) GetNumericSort() int {
+	return this.NumericSortCol
+}
+
+func (this *BaseTableFmt) ClearNumericSort() {
+	this.NumericSortCol = SORT_UNSET
+}
+
 func (this *BaseTableFmt) SetHeaders(t_headers td.TableDataRow) {
 	this.Headers = t_headers
 }
@@ -194,6 +241,7 @@ func (this *BaseTableFmt) RowLen() int {
 
 // Generic copying functionality.
 func (this *BaseTableFmt) Copy(t_fmt TableFmt) error {
+	// This is a generic implementation for copying over all data.
 	this.Label = t_fmt.GetLabel()
 
 	headers := t_fmt.GetHeaders()
@@ -204,6 +252,12 @@ func (this *BaseTableFmt) Copy(t_fmt TableFmt) error {
 
 	order := t_fmt.GetOrder()
 	this.SetOrder(order)
+
+	sortCol := t_fmt.GetSort()
+	this.SetSort(sortCol)
+
+	numSortCol := t_fmt.GetNumericSort()
+	this.SetNumericSort(numSortCol)
 
 	head := t_fmt.GetHead()
 	this.SetHead(head)
