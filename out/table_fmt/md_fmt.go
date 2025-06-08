@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	mdColSep = '|'
+	MdColSep = '|'
 )
 
 type MdFmt struct {
@@ -111,6 +111,8 @@ func (this *MdFmt) printTableRows() error {
 }
 
 func (this *MdFmt) Write() error {
+	this.PerformSort()
+
 	err := this.printTableHeader()
 	if err != nil {
 		return err
@@ -144,6 +146,12 @@ func (this *MdFmt) Copy(t_fmt TableFmt) error {
 	order := t_fmt.GetOrder()
 	this.SetOrder(order)
 
+	sort_ := t_fmt.GetSort()
+	this.SetSort(sort_)
+
+	numSort := t_fmt.GetNumericSort()
+	this.SetNumericSort(numSort)
+
 	head := t_fmt.GetHead()
 	this.SetHead(head)
 
@@ -158,8 +166,10 @@ func InitMdFmt(t_label string) (MdFmt, error) {
 
 	fmt_.Label = t_label
 	fmt_.ColWidth = make(map[int]int)
-	fmt_.Head = HEAD_UNSET
-	fmt_.Tail = TAIL_UNSET
+	fmt_.SortCol = SortUnset
+	fmt_.NumericSortCol = SortUnset
+	fmt_.Head = HeadUnset
+	fmt_.Tail = TailUnset
 
 	return fmt_, nil
 }

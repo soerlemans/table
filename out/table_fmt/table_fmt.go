@@ -12,8 +12,9 @@ import (
 type TableFmtPtr = *TableFmt
 
 const (
-	HEAD_UNSET = -1
-	TAIL_UNSET = -1
+	HeadUnset = -1
+	TailUnset = -1
+	SortUnset = -1
 )
 
 // Format output.
@@ -39,8 +40,17 @@ type TableFmt interface {
 	InBounds(t_index int) bool
 
 	// Sorting related:
-	Sort(t_col int)
-	NumericSort(t_col int)
+	SetSort(t_col int)
+	GetSort() int
+	ClearSort()
+	Sort()
+
+	SetNumericSort(t_col int)
+	GetNumericSort() int
+	ClearNumericSort()
+	NumericSort()
+
+	PerformSort()
 
 	// Primary data related:
 	SetHeaders(headers td.TableDataRow)
@@ -66,6 +76,9 @@ type BaseTableFmt struct {
 	// Determines order of the columns, as well as which columns to print.
 	// If empty will print all columns in their regular format.
 	Order []int
+
+	SortCol        int
+	NumericSortCol int
 
 	Head int
 	Tail int
@@ -113,7 +126,7 @@ func (this *BaseTableFmt) GetHead() int {
 }
 
 func (this *BaseTableFmt) ClearHead() {
-	this.Head = HEAD_UNSET
+	this.Head = HeadUnset
 }
 
 func (this *BaseTableFmt) SetTail(t_count int) {
@@ -125,7 +138,7 @@ func (this *BaseTableFmt) GetTail() int {
 }
 
 func (this *BaseTableFmt) ClearTail() {
-	this.Tail = TAIL_UNSET
+	this.Tail = TailUnset
 }
 
 // Check if a certain row index is in bounds of the head and tail.
@@ -153,7 +166,7 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 	}
 
 	// Any negative values are seen as being unset.
-	if head > HEAD_UNSET {
+	if head > HeadUnset {
 		// If the index is below the head count we are in bounds.
 		headInBound = (t_index < head)
 		u.Logf("InBounds: %v = %d < %d", headInBound, t_index, head)
@@ -161,7 +174,7 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 		headInBound = true
 	}
 
-	if tail > TAIL_UNSET {
+	if tail > TailUnset {
 		// We need to subtract one here to account for zero index-ation.
 		tailBound := (rowCount - 1) - tail
 
@@ -180,24 +193,52 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 }
 
 // Sorting related:
-func (this *BaseTableFmt) Sort(t_col int) {
+func (this *BaseTableFmt) SetSort(t_col int) {
+	this.SortCol = t_col
+}
+
+func (this *BaseTableFmt) GetSort() int {
+	return this.SortCol
+}
+
+func (this *BaseTableFmt) ClearSort() {
+	this.SortCol = SortUnset
+}
+
+func (this *BaseTableFmt) Sort() {
+	col := this.SortCol
+
 	less := func(index1, index2 int) bool {
-		return this.Rows[index1][t_col] < this.Rows[index2][t_col]
+		return this.Rows[index1][col] < this.Rows[index2][col]
 	}
 
 	// Use sort.Slice with a custom less function
 	sort.Slice(this.Rows, less)
 }
 
-func (this *BaseTableFmt) NumericSort(t_col int) {
+func (this *BaseTableFmt) SetNumericSort(t_col int) {
+	this.NumericSortCol = t_col
+}
+
+func (this *BaseTableFmt) GetNumericSort() int {
+	return this.NumericSortCol
+}
+
+func (this *BaseTableFmt) ClearNumericSort() {
+	this.NumericSortCol = SortUnset
+}
+
+func (this *BaseTableFmt) NumericSort() {
+	col := this.NumericSortCol
+
 	less := func(index1, index2 int) bool {
 		// Convert string to int for the column to sort.
-		num1, err := strconv.Atoi(this.Rows[index1][t_col])
+		num1, err := strconv.Atoi(this.Rows[index1][col])
 		if err != nil {
 			panic(err)
 		}
 
-		num2, err := strconv.Atoi(this.Rows[index2][t_col])
+		num2, err := strconv.Atoi(this.Rows[index2][col])
 		if err != nil {
 			panic(err)
 		}
@@ -207,6 +248,15 @@ func (this *BaseTableFmt) NumericSort(t_col int) {
 
 	// Use sort.Slice with a custom less function
 	sort.Slice(this.Rows, less)
+}
+
+func (this *BaseTableFmt) PerformSort() {
+	// Sort and numerical sort are mutually exclusive operations.
+	if this.NumericSortCol != SortUnset {
+		this.NumericSort()
+	} else if this.SortCol != SortUnset {
+		this.Sort()
+	}
 }
 
 func (this *BaseTableFmt) SetHeaders(t_headers td.TableDataRow) {
@@ -246,6 +296,12 @@ func (this *BaseTableFmt) Copy(t_fmt TableFmt) error {
 
 	order := t_fmt.GetOrder()
 	this.SetOrder(order)
+
+	sort_ := t_fmt.GetSort()
+	this.SetSort(sort_)
+
+	numSort := t_fmt.GetNumericSort()
+	this.SetNumericSort(numSort)
 
 	head := t_fmt.GetHead()
 	this.SetHead(head)

@@ -485,9 +485,9 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 		}
 
 		if argPtr, err := rvalue(t_stream); validPtr(argPtr, err) {
-			head := ir.InitInstruction(ir.Head, *argPtr)
+			sort_ := ir.InitInstruction(ir.Sort, *argPtr)
 
-			inst = &head
+			inst = &sort_
 		} else {
 			// We must receive an argument for head.
 			return inst, errExpectedString("keyword", "Number or identifier")
@@ -501,9 +501,9 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 		}
 
 		if argPtr, err := rvalue(t_stream); validPtr(argPtr, err) {
-			head := ir.InitInstruction(ir.Head, *argPtr)
+			numSort := ir.InitInstruction(ir.NumericSort, *argPtr)
 
-			inst = &head
+			inst = &numSort
 		} else {
 			// We must receive an argument for head.
 			return inst, errExpectedString("keyword", "Number or identifier")

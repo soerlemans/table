@@ -209,6 +209,24 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 	return result, nil
 }
 
+func (this *IrVm) valueType2ColIndex(t_val Value) (int, error) {
+	var index int
+
+	// Get operands from the instruction.
+	colName, err := this.resolveValue(t_val)
+	if err != nil {
+		return index, err
+	}
+
+	// Convert column names to indices.
+	index, err = this.Table.ColNameToIndex(colName)
+	if err != nil {
+		return index, err
+	}
+
+	return index, nil
+}
+
 func (this *IrVm) applyFmtColOrder(t_inst *Instruction) error {
 	// Get operands from the instruction.
 	colNames, err := this.resolveValues(t_inst.Operands)
@@ -349,6 +367,38 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			if !cmp {
 				skip = true
 			}
+			break
+
+			// TODO: Move somewhere else.
+		case Sort:
+			val := inst.Operands[0]
+			resolved, err := this.resolveValue(val)
+			if err != nil {
+				return err
+			}
+
+			num, err := toInt(resolved)
+			if err != nil {
+				return err
+			}
+
+			this.Fmt.SetSort(num)
+			break
+
+			// TODO: Move somewhere else.
+		case NumericSort:
+			val := inst.Operands[0]
+			resolved, err := this.resolveValue(val)
+			if err != nil {
+				return err
+			}
+
+			num, err := toInt(resolved)
+			if err != nil {
+				return err
+			}
+
+			this.Fmt.SetNumericSort(num)
 			break
 
 			// TODO: Move somewhere else.

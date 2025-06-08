@@ -26,6 +26,9 @@ const (
 	When
 	Mut
 
+	Sort
+	NumericSort
+
 	Head
 	Tail
 
@@ -55,6 +58,11 @@ func (t InstructionType) String() string {
 	case Mut:
 		return "Mut"
 
+	case Sort:
+		return "Sort"
+	case NumericSort:
+		return "NumericSort"
+
 	case Head:
 		return "Head"
 	case Tail:
@@ -70,8 +78,9 @@ func (t InstructionType) String() string {
 		return "Html"
 	}
 
-	// Optionally return an error?
-	return "<Unknown InstructionType>"
+	// Return unhandled case.
+	msg := fmt.Sprintf("<Unknown InstructionType (%v)>", t)
+	return msg
 }
 
 type ValueType int
@@ -103,7 +112,8 @@ func (t ValueType) String() string {
 	}
 
 	// Optionally return an error?
-	return "<Unknown ValueType>"
+	msg := fmt.Sprintf("<Unknown ValueType (%v)>", t)
+	return msg
 }
 
 type Value struct {
