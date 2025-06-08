@@ -10,22 +10,26 @@ type FileSink struct {
 	File *os.File
 }
 
-func (this *FileSink) Writef(t_fmt string, t_args ...interface{}) {
+func (this *FileSink) Writef(t_fmt string, t_args ...interface{}) error {
 	str := fmt.Sprintf(t_fmt, t_args...)
 
 	_, err := this.File.WriteString(str)
 	if err != nil {
-		// TODO: Handle err.
+		return err
 	}
+
+	return nil
 }
 
-func (this *FileSink) Writeln(t_args ...interface{}) {
+func (this *FileSink) Writeln(t_args ...interface{}) error {
 	str := fmt.Sprintln(t_args...)
 
 	_, err := this.File.WriteString(str)
 	if err != nil {
-		// TODO: Handle err.
+		return err
 	}
+
+	return nil
 }
 
 func InitFileSink(t_path string) (FileSink, error) {

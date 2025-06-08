@@ -301,6 +301,7 @@ func Lex(t_text string) (TokenStream, error) {
 			runeStream.Next()
 			continue
 		} else if unicode.IsNumber(rn) {
+			// Lex a number.
 			token, err := lexNumbers(&runeStream)
 			if err != nil {
 				return tokenStream, err
@@ -308,7 +309,7 @@ func Lex(t_text string) (TokenStream, error) {
 
 			tokenStream.Append(token)
 		} else if rn == DoubleQuoteRn {
-			// TODO: Lex a string.
+			// Lex a string.
 			token, err := lexString(&runeStream)
 			if err != nil {
 				return tokenStream, err

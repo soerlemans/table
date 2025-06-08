@@ -3,8 +3,6 @@ package table_fmt
 import (
 	"fmt"
 	"strings"
-
-	td "github.com/soerlemans/table/table_data"
 )
 
 const (
@@ -26,7 +24,7 @@ func (this *PrettyFmt) printTableHeaderSep() error {
 	for _, index := range order {
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
-			// TODO: Return err.
+			return this.errColWidthIndex(index)
 		}
 
 		// Check if the column is selected.

@@ -151,7 +151,6 @@ func (t TokenType) String() string {
 	return "<Unknown TokenType>"
 }
 
-// TODO: Document.
 type Token struct {
 	Type  TokenType
 	Value string
