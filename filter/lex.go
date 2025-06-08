@@ -11,61 +11,64 @@ import (
 
 // Character Terminals:
 const (
-	DOUBLE_QUOTE_RN = '"'
+	DoubleQuoteRn = '"'
 
-	DOT_RN         = '.'
-	DOLLAR_SIGN_RN = '$'
+	DotRn        = '.'
+	DollarSignRn = '$'
 
-	COMMA_RN = ','
-	PIPE_RN  = '|'
-	COLON_RN = ':'
+	CommaRn = ','
+	PipeRn  = '|'
+	ColonRn = ':'
 
-	LESS_THAN_STR       = "<"
-	LESS_THAN_EQUAL_STR = "<="
+	LessThanStr      = "<"
+	LessThanEqualStr = "<="
 
-	EQUAL_STR     = "=="
-	NOT_EQUAL_STR = "!="
+	EqualStr    = "=="
+	NotEqualStr = "!="
 
-	GREATER_THAN_STR       = ">"
-	GREATER_THAN_EQUAL_STR = ">="
+	GreaterThanStr      = ">"
+	GreaterThanEqualStr = ">="
 )
 
 // Single rune symbols mapped to TokenType.
 var singleRuneSymbols = map[string]TokenType{
-	string(DOT_RN):         ACCESSOR_NAME,
-	string(DOLLAR_SIGN_RN): ACCESSOR_POSITIONAL,
-	string(COMMA_RN):       COMMA,
-	string(PIPE_RN):        PIPE,
-	string(COLON_RN):       COLON,
+	string(DotRn):        AccessorName,
+	string(DollarSignRn): AccessorPositional,
+	string(CommaRn):      Comma,
+	string(PipeRn):       Pipe,
+	string(ColonRn):      Colon,
 
-	LESS_THAN_STR:    LESS_THAN,
-	GREATER_THAN_STR: GREATER_THAN,
+	LessThanStr:    LessThan,
+	GreaterThanStr: GreaterThan,
 }
 
 // Multi rune symbols mapped to TokenType.
 var multiRuneSymbols = map[string]TokenType{
-	LESS_THAN_EQUAL_STR: LESS_THAN_EQUAL,
+	LessThanEqualStr: LessThanEqual,
 
-	EQUAL_STR:     EQUAL,
-	NOT_EQUAL_STR: NOT_EQUAL,
+	EqualStr:    Equal,
+	NotEqualStr: NotEqual,
 
-	GREATER_THAN_EQUAL_STR: GREATER_THAN_EQUAL,
+	GreaterThanEqualStr: GreaterThanEqual,
 }
 
 // Keywords mapped to TokenType.
 var Keywords = map[string]TokenType{
 	// Keywords:
-	"when": WHEN,
-	"mut":  MUT,
+	"when": When,
+	"mut":  Mut,
 
-	"head": HEAD,
-	"tail": TAIL,
+	"sort":         Sort,
+	"numeric_sort": NumericSort,
+
+	"head": Head,
+	"tail": Tail,
 
 	// Writer specifications:
-	"csv":  CSV,
-	"md":   MD,
-	"json": JSON,
-	"html": HTML,
+	"csv":  Csv,
+	"md":   Md,
+	"json": Json,
+	"html": Html,
 }
 
 // Errors:
@@ -112,7 +115,7 @@ func lexNumbers(t_stream *s.StringStream) (Token, error) {
 			}
 		}
 
-		token = InitToken(NUMBER, value)
+		token = InitToken(Number, value)
 	} else {
 		err := incorrectStartingRune("numbers", initialRn)
 
@@ -159,7 +162,7 @@ func lexIdentifier(t_stream *s.StringStream) (Token, error) {
 			}
 		}
 
-		token = InitToken(IDENTIFIER, value)
+		token = InitToken(Identifier, value)
 	} else {
 		err := incorrectStartingRune("identifiers", initialRn)
 
@@ -177,7 +180,7 @@ func lexString(t_stream *s.StringStream) (Token, error) {
 	var token Token
 	initialRn := t_stream.Current()
 
-	if initialRn == DOUBLE_QUOTE_RN {
+	if initialRn == DoubleQuoteRn {
 		var value string
 		for !t_stream.Eos() {
 			// Inch stream forward.
@@ -185,14 +188,14 @@ func lexString(t_stream *s.StringStream) (Token, error) {
 
 			// Error handle.
 			if t_stream.Eos() {
-				err := unterminated("string", DOUBLE_QUOTE_RN)
+				err := unterminated("string", DoubleQuoteRn)
 
 				return token, err
 			}
 
 			// Get current rune.
 			rn := t_stream.Current()
-			if rn != DOUBLE_QUOTE_RN {
+			if rn != DoubleQuoteRn {
 				value += string(rn)
 			} else {
 				// Pass by the double quote rune.
@@ -203,7 +206,7 @@ func lexString(t_stream *s.StringStream) (Token, error) {
 			}
 		}
 
-		token = InitToken(STRING, value)
+		token = InitToken(String, value)
 	} else {
 		return token, incorrectStartingRune("strings", initialRn)
 	}
@@ -303,7 +306,7 @@ func Lex(t_text string) (TokenStream, error) {
 			}
 
 			tokenStream.Append(token)
-		} else if rn == DOUBLE_QUOTE_RN {
+		} else if rn == DoubleQuoteRn {
 			// TODO: Lex a string.
 			token, err := lexString(&runeStream)
 			if err != nil {

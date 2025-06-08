@@ -3,6 +3,7 @@ package table_fmt
 import (
 	"fmt"
 	"sort"
+	"strconv"
 
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
@@ -190,7 +191,18 @@ func (this *BaseTableFmt) Sort(t_col int) {
 
 func (this *BaseTableFmt) NumericSort(t_col int) {
 	less := func(index1, index2 int) bool {
-		return this.Rows[index1][t_col] < this.Rows[index2][t_col]
+		// Convert string to int for the column to sort.
+		num1, err := strconv.Atoi(this.Rows[index1][t_col])
+		if err != nil {
+			panic(err)
+		}
+
+		num2, err := strconv.Atoi(this.Rows[index2][t_col])
+		if err != nil {
+			panic(err)
+		}
+
+		return num1 < num2
 	}
 
 	// Use sort.Slice with a custom less function

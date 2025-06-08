@@ -478,6 +478,38 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 		inst = &mut
 		break
 
+	case Sort:
+		t_stream.Next()
+		if t_stream.Eos() {
+			// TODO: Handle end of stream expected a numeric.
+		}
+
+		if argPtr, err := rvalue(t_stream); validPtr(argPtr, err) {
+			head := ir.InitInstruction(ir.Head, *argPtr)
+
+			inst = &head
+		} else {
+			// We must receive an argument for head.
+			return inst, errExpectedString("keyword", "Number or identifier")
+		}
+		break
+
+	case NumericSort:
+		t_stream.Next()
+		if t_stream.Eos() {
+			// TODO: Handle end of stream expected a numeric.
+		}
+
+		if argPtr, err := rvalue(t_stream); validPtr(argPtr, err) {
+			head := ir.InitInstruction(ir.Head, *argPtr)
+
+			inst = &head
+		} else {
+			// We must receive an argument for head.
+			return inst, errExpectedString("keyword", "Number or identifier")
+		}
+		break
+
 	case HEAD:
 		t_stream.Next()
 		if t_stream.Eos() {

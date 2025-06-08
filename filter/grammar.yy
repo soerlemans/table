@@ -14,6 +14,8 @@
 
 // Keywords:
 %token  WHEN MUT
+%token  SORT NUMERIC_SORT
+%token  HEAD TAIL
 
 // Write directives.
 %token CSV MD JSON HTML
@@ -59,6 +61,8 @@ expr             : rvalue LE rvalue
 
 keyword          : WHEN expr
                  | MUT expr
+								 | SORT rvalue
+								 | NUMERIC_SORT rvalue
 								 | HEAD rvalue
 								 | TAIL rvalue
                  ;
