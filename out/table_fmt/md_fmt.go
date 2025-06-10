@@ -72,9 +72,9 @@ func (this *MdFmt) printRow(t_row td.TableDataRow) error {
 		}
 
 		// Check if the column is selected.
-		fmt.Printf("| %-*s ", colWidth, cell)
+		this.writef("| %-*s ", colWidth, cell)
 	}
-	fmt.Println("|")
+	this.writeln("|")
 
 	return nil
 }
@@ -94,9 +94,9 @@ func (this *MdFmt) printTableHeaderSep() error {
 
 		// Check if the column is selected.
 		colSep := strings.Repeat("-", colWidth)
-		fmt.Printf("| %s ", colSep)
+		this.writef("| %s ", colSep)
 	}
-	fmt.Println("|")
+	this.writeln("|")
 
 	return nil
 }
@@ -168,18 +168,21 @@ func (this *MdFmt) Copy(t_fmt TableFmt) error {
 	tail := t_fmt.GetTail()
 	this.SetTail(tail)
 
+	sink := t_fmt.GetSink()
+	this.SetSink(sink)
+
 	return nil
 }
 
 func InitMdFmt(t_label string) (MdFmt, error) {
-	fmt_ := MdFmt{}
+	base, err := InitBaseTableFmt(t_label)
+	format := MdFmt{BaseTableFmt: base}
+	if err != nil {
+		return format, err
+	}
 
-	fmt_.Label = t_label
-	fmt_.ColWidth = make(map[int]int)
-	fmt_.SortCol = SortUnset
-	fmt_.NumericSortCol = SortUnset
-	fmt_.Head = HeadUnset
-	fmt_.Tail = TailUnset
+	// Markdown table specific init.
+	format.ColWidth = make(map[int]int)
 
-	return fmt_, nil
+	return format, nil
 }

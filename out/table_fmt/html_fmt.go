@@ -14,6 +14,9 @@ const (
 	Section
 	Row
 	Cell
+
+	// We use two spaces for indentation.
+	Identation string = "  "
 )
 
 type HtmlFmt struct {
@@ -21,41 +24,40 @@ type HtmlFmt struct {
 	BaseTableFmt
 }
 
-func indent(t_level IdentLevel, t_fmt string, t_args ...interface{}) {
+func (this *HtmlFmt) indent(t_level IdentLevel, t_fmt string, t_args ...interface{}) {
 	level := int(t_level)
 
 	// We use 2 spaces for indentation.
-	str := strings.Repeat("  ", level)
-
+	str := strings.Repeat(Identation, level)
 	format := fmt.Sprintf("%s%s\n", str, t_fmt)
 
-	fmt.Printf(format, t_args...)
+	this.writef(format, t_args...)
 }
 
 func (this *HtmlFmt) printRow(t_tag string, t_row td.TableDataRow) error {
 	order := this.GetOrder()
 
-	indent(Row, "<tr>")
+	this.indent(Row, "<tr>")
 	for _, index := range order {
 		cell := t_row[index]
 
-		indent(Cell, "<%s> %s </%s>", t_tag, cell, t_tag)
+		this.indent(Cell, "<%s> %s </%s>", t_tag, cell, t_tag)
 	}
-	indent(Row, "</tr>")
+	this.indent(Row, "</tr>")
 
 	return nil
 }
 
 func (this *HtmlFmt) printTableHeader() error {
-	indent(Section, "<thead>")
+	this.indent(Section, "<thead>")
 	err := this.printRow("td", this.Headers)
-	indent(Section, "</thead>")
+	this.indent(Section, "</thead>")
 
 	return err
 }
 
 func (this *HtmlFmt) printTableRows() error {
-	indent(Section, "<tbody>")
+	this.indent(Section, "<tbody>")
 	// Print per row.
 	for index, row := range this.Rows {
 		// Skip if we are not in bounds.
@@ -69,13 +71,13 @@ func (this *HtmlFmt) printTableRows() error {
 			return err
 		}
 	}
-	indent(Section, "</tbody>")
+	this.indent(Section, "</tbody>")
 
 	return nil
 }
 
 func (this *HtmlFmt) Write() error {
-	indent(Table, "<table>")
+	this.indent(Table, "<table>")
 	err := this.printTableHeader()
 	if err != nil {
 		return err
@@ -86,19 +88,17 @@ func (this *HtmlFmt) Write() error {
 		return err
 	}
 
-	indent(Table, "</table>")
+	this.indent(Table, "</table>")
 
 	return nil
 }
 
 func InitHtmlFmt(t_label string) (HtmlFmt, error) {
-	fmt_ := HtmlFmt{}
+	base, err := InitBaseTableFmt(t_label)
+	format := HtmlFmt{BaseTableFmt: base}
+	if err != nil {
+		return format, err
+	}
 
-	fmt_.Label = t_label
-	fmt_.SortCol = SortUnset
-	fmt_.NumericSortCol = SortUnset
-	fmt_.Head = HeadUnset
-	fmt_.Tail = TailUnset
-
-	return fmt_, nil
+	return format, nil
 }

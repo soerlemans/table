@@ -7,11 +7,16 @@ package stream
 // }
 
 type Stream[V any] interface {
+	// TODO: Consider:
+	// Current() (V, error)
+
 	Current() V
 	Prev()
 	Next()
+
 	Peek() (V, bool)
 	Append(V)
+
 	Eos() bool
 	Len() int
 }

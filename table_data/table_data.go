@@ -48,7 +48,7 @@ func (this *TableData) RowLength() int {
 // Get a specific cell by just indices.
 func (this *TableData) CellByIndices(t_row int, t_col int) (string, error) {
 	var cell string
-	defer func() { u.Logf("CellByIndices: %s.", u.Quote(cell)) }()
+	// defer func() { u.Logf("CellByIndices: %s.", u.Quote(cell)) }()
 
 	if t_row < this.RowLength() {
 		rowSlice := this.RowsData[t_row]
@@ -106,7 +106,7 @@ func (this *TableData) CellByColName(t_row int, t_name string) (string, error) {
 
 func (this *TableData) GetRow(t_row int) (TableDataRow, error) {
 	var row TableDataRow
-	defer func() { u.Logf("GetRow: %s.", u.Quote(row)) }()
+	// defer func() { u.Logf("GetRow: %s.", u.Quote(row)) }()
 
 	if t_row < this.RowLength() {
 		rowArray := this.RowsData[t_row]
@@ -164,12 +164,12 @@ func matrix2TableData(t_matrix [][]string) TableData {
 			table.Headers = append(table.Headers, header)
 			table.HeadersMap[header] = index
 
-			u.Logf("Header: (%d:%s)", index, header)
+			// u.Logf("Header: (%d:%s)", index, header)
 		}
 
 		// Initialize fields:
-		for index, row := range t_matrix[1:] {
-			u.Logf("Added row(%d): %v", index, row)
+		for _, row := range t_matrix[1:] {
+			// u.Logf("Added row(%d): %v", index, row)
 			table.RowsData = append(table.RowsData, row)
 		}
 	}

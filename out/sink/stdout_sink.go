@@ -8,16 +8,12 @@ import (
 type StdoutSink struct {
 }
 
-func (this *StdoutSink) Writef(t_fmt string, t_args ...interface{}) error {
+func (this *StdoutSink) Writef(t_fmt string, t_args ...interface{}) {
 	fmt.Printf(t_fmt, t_args...)
-
-	return nil
 }
 
-func (this *StdoutSink) Writeln(t_args ...interface{}) error {
+func (this *StdoutSink) Writeln(t_args ...interface{}) {
 	fmt.Println(t_args...)
-
-	return nil
 }
 
 func InitStdoutSink() StdoutSink {

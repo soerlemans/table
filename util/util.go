@@ -121,6 +121,13 @@ func FailIf(t_err error) {
 	}
 }
 
+// Panic in this case.
+func PanicIf(t_err error) {
+	if t_err != nil {
+		panic(t_err)
+	}
+}
+
 func Errorf(t_fmt string, t_args ...interface{}) error {
 	errStr := fmt.Sprintf(t_fmt, t_args...)
 

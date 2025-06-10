@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strconv"
 
+	s "github.com/soerlemans/table/out/sink"
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
 )
@@ -62,6 +63,10 @@ type TableFmt interface {
 	AddRow(t_row td.TableDataRow)
 	RowLen() int
 
+	// Set the sink.
+	SetSink(t_sink s.Sink)
+	GetSink() s.Sink
+
 	// Copying over:
 	Copy(t_fmt TableFmt) error
 
@@ -86,8 +91,20 @@ type BaseTableFmt struct {
 	// We need to calculate the max column width for every entry.
 	Headers td.TableDataRow
 	Rows    []td.TableDataRow
+
+	Sink s.Sink
 }
 
+// Private:
+func (this *BaseTableFmt) writef(t_fmt string, t_args ...interface{}) {
+	this.Sink.Writef(t_fmt, t_args...)
+}
+
+func (this *BaseTableFmt) writeln(t_args ...interface{}) {
+	this.Sink.Writeln(t_args...)
+}
+
+// Public:
 func (this *BaseTableFmt) GetLabel() string {
 	return this.Label
 }
@@ -287,6 +304,14 @@ func (this *BaseTableFmt) RowLen() int {
 	return len(this.Rows)
 }
 
+func (this *BaseTableFmt) SetSink(t_sink s.Sink) {
+	this.Sink = t_sink
+}
+
+func (this *BaseTableFmt) GetSink() s.Sink {
+	return this.Sink
+}
+
 // Generic copying functionality.
 func (this *BaseTableFmt) Copy(t_fmt TableFmt) error {
 	// This is a generic implementation for copying over all data.
@@ -313,5 +338,23 @@ func (this *BaseTableFmt) Copy(t_fmt TableFmt) error {
 	tail := t_fmt.GetTail()
 	this.SetTail(tail)
 
+	sink := t_fmt.GetSink()
+	this.SetSink(sink)
+
 	return nil
+}
+
+func InitBaseTableFmt(t_label string) (BaseTableFmt, error) {
+	format := BaseTableFmt{}
+
+	format.Label = t_label
+	format.SortCol = SortUnset
+	format.NumericSortCol = SortUnset
+	format.Head = HeadUnset
+	format.Tail = TailUnset
+
+	sink := s.InitStdoutSink()
+	format.Sink = &sink
+
+	return format, nil
 }
