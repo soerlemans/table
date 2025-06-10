@@ -4,6 +4,7 @@ import (
 	l "container/list"
 	"fmt"
 
+	s "github.com/soerlemans/table/out/sink"
 	tf "github.com/soerlemans/table/out/table_fmt"
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
@@ -22,7 +23,8 @@ type IrVm struct {
 	Table *td.TableData
 
 	// The formatter is in control of formatting the table in different formats.
-	Fmt tf.TableFmt
+	Fmt  tf.TableFmt
+	Sink s.Sink
 }
 
 // TODO: The index and tableData should be wrapped in a struct or something.
