@@ -187,7 +187,7 @@ func accessorName(t_stream *TokenStream) (ValuePtr, error) {
 	dot := t_stream.Current()
 
 	// TODO: Refactor boilerplate later.
-	if dot.Type == ACCESSOR_NAME {
+	if dot.Type == AccessorName {
 		u.Logf("Found a '%v'", dot.Type)
 		t_stream.Next()
 
@@ -198,9 +198,9 @@ func accessorName(t_stream *TokenStream) (ValuePtr, error) {
 		// Identifier and string are both converted to the same value.
 		token := t_stream.Current()
 		switch token.Type {
-		case IDENTIFIER:
+		case Identifier:
 			fallthrough
-		case STRING:
+		case String:
 			name := ir.InitValue(ir.FieldByName, token.Value)
 
 			value = &name
@@ -227,7 +227,7 @@ func accessorPositional(t_stream *TokenStream) (ValuePtr, error) {
 	dollarSign := t_stream.Current()
 
 	// TODO: Refactor boilerplate later.
-	if dollarSign.Type == ACCESSOR_POSITIONAL {
+	if dollarSign.Type == AccessorPositional {
 		u.Logf("Found a '%v'", dollarSign.Type)
 		t_stream.Next()
 
@@ -243,7 +243,7 @@ func accessorPositional(t_stream *TokenStream) (ValuePtr, error) {
 		// case IDENTIFIER:
 		// 	return value, nil
 
-		case NUMBER:
+		case Number:
 			// integer, err := strconv.ParseInt(token.Value, 10, 64)
 			pos := ir.InitValue(ir.FieldByPosition, token.Value)
 
@@ -283,7 +283,7 @@ func parameter(t_stream *TokenStream) (ValuePtr, error) {
 }
 
 func parameterList(t_stream *TokenStream) (ValueListPtr, error) {
-	return parseValueList(t_stream, parameter, COMMA)
+	return parseValueList(t_stream, parameter, Comma)
 }
 
 // Ast:
@@ -300,21 +300,21 @@ func rvalue(t_stream *TokenStream) (ValuePtr, error) {
 
 	// TODO: Refactor boilerplate later.
 	switch token.Type {
-	case NUMBER:
+	case Number:
 		number := ir.InitValue(ir.Number, token.Value)
 
 		value = &number
 		t_stream.Next()
 		break
 
-	case STRING:
+	case String:
 		str := ir.InitValue(ir.String, token.Value)
 
 		value = &str
 		t_stream.Next()
 		break
 
-	case IDENTIFIER:
+	case Identifier:
 		id := ir.InitValue(ir.Identifier, token.Value)
 
 		value = &id
@@ -376,7 +376,7 @@ func expr(t_stream *TokenStream) (InstPtr, error) {
 
 		// TODO: Cleanup boilerplate.
 		switch token.Type {
-		case LESS_THAN:
+		case LessThan:
 			ltPtr, err := initComparison(t_stream, ir.LessThan, lhs)
 			if err != nil {
 				return inst, err
@@ -385,7 +385,7 @@ func expr(t_stream *TokenStream) (InstPtr, error) {
 			inst = ltPtr
 			break
 
-		case LESS_THAN_EQUAL:
+		case LessThanEqual:
 			ltePtr, err := initComparison(t_stream, ir.LessThanEqual, lhs)
 			if err != nil {
 				return inst, err
@@ -394,7 +394,7 @@ func expr(t_stream *TokenStream) (InstPtr, error) {
 			inst = ltePtr
 			break
 
-		case EQUAL:
+		case Equal:
 			eqPtr, err := initComparison(t_stream, ir.Equal, lhs)
 			if err != nil {
 				return inst, err
@@ -403,7 +403,7 @@ func expr(t_stream *TokenStream) (InstPtr, error) {
 			inst = eqPtr
 			break
 
-		case NOT_EQUAL:
+		case NotEqual:
 			nePtr, err := initComparison(t_stream, ir.NotEqual, lhs)
 			if err != nil {
 				return inst, err
@@ -412,7 +412,7 @@ func expr(t_stream *TokenStream) (InstPtr, error) {
 			inst = nePtr
 			break
 
-		case GREATER_THAN:
+		case GreaterThan:
 			gtPtr, err := initComparison(t_stream, ir.GreaterThan, lhs)
 			if err != nil {
 				return inst, err
@@ -421,7 +421,7 @@ func expr(t_stream *TokenStream) (InstPtr, error) {
 			inst = gtPtr
 			break
 
-		case GREATER_THAN_EQUAL:
+		case GreaterThanEqual:
 			gtePtr, err := initComparison(t_stream, ir.GreaterThanEqual, lhs)
 			if err != nil {
 				return inst, err
@@ -450,7 +450,7 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 
 	token := t_stream.Current()
 	switch token.Type {
-	case WHEN:
+	case When:
 		t_stream.Next()
 		if !t_stream.Eos() {
 			list, err = parameterList(t_stream)
@@ -464,7 +464,7 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 		inst = &when
 		break
 
-	case MUT:
+	case Mut:
 		t_stream.Next()
 		if !t_stream.Eos() {
 			list, err = parameterList(t_stream)
@@ -478,7 +478,39 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 		inst = &mut
 		break
 
-	case HEAD:
+	case Sort:
+		t_stream.Next()
+		if t_stream.Eos() {
+			// TODO: Handle end of stream expected a numeric.
+		}
+
+		if argPtr, err := rvalue(t_stream); validPtr(argPtr, err) {
+			sort_ := ir.InitInstruction(ir.Sort, *argPtr)
+
+			inst = &sort_
+		} else {
+			// We must receive an argument for head.
+			return inst, errExpectedString("keyword", "String containing a column name")
+		}
+		break
+
+	case NumericSort:
+		t_stream.Next()
+		if t_stream.Eos() {
+			// TODO: Handle end of stream expected a numeric.
+		}
+
+		if argPtr, err := rvalue(t_stream); validPtr(argPtr, err) {
+			numSort := ir.InitInstruction(ir.NumericSort, *argPtr)
+
+			inst = &numSort
+		} else {
+			// We must receive an argument for head.
+			return inst, errExpectedString("keyword", "String containing a column name")
+		}
+		break
+
+	case Head:
 		t_stream.Next()
 		if t_stream.Eos() {
 			// TODO: Handle end of stream expected a numeric.
@@ -494,7 +526,7 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 		}
 		break
 
-	case TAIL:
+	case Tail:
 		t_stream.Next()
 		if t_stream.Eos() {
 			// TODO: Handle end of stream expected a numeric.
@@ -534,7 +566,7 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 
 	token := t_stream.Current()
 	switch token.Type {
-	case CSV:
+	case Csv:
 		t_stream.Next()
 		if !t_stream.Eos() {
 			list, err = parameterList(t_stream)
@@ -548,7 +580,7 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 		inst = &csv
 		break
 
-	case MD:
+	case Md:
 		t_stream.Next()
 		if !t_stream.Eos() {
 			list, err = parameterList(t_stream)
@@ -562,7 +594,21 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 		inst = &md
 		break
 
-	case JSON:
+	case Pretty:
+		t_stream.Next()
+		if !t_stream.Eos() {
+			list, err = parameterList(t_stream)
+			if err != nil {
+				return inst, err
+			}
+		}
+
+		pretty := ir.InitInstructionByList(ir.Pretty, *list)
+
+		inst = &pretty
+		break
+
+	case Json:
 		t_stream.Next()
 		if !t_stream.Eos() {
 			list, err = parameterList(t_stream)
@@ -576,7 +622,7 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 		inst = &json
 		break
 
-	case HTML:
+	case Html:
 		t_stream.Next()
 		if !t_stream.Eos() {
 			list, err = parameterList(t_stream)
@@ -630,7 +676,7 @@ func item(t_stream *TokenStream) (InstPtr, error) {
 }
 
 func itemList(t_stream *TokenStream) (InstListPtr, error) {
-	return parseList(t_stream, item, PIPE)
+	return parseList(t_stream, item, Pipe)
 }
 
 // This function is here purely just to match the grammary.yy.

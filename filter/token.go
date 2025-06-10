@@ -12,123 +12,138 @@ type TokenStream = s.SliceStream[Token]
 type TokenType uint64
 
 const (
-	IDENTIFIER TokenType = iota
-	NUMBER
-	STRING
+	Identifier TokenType = iota
+	Number
+	String
 
 	// Function calls are identified by an identifier followed directly by a `(`.
-	FUNCTION_CALL
+	FunctionCall
 
 	// This is an accessor using `.`.
-	ACCESSOR_NAME
+	AccessorName
 
 	// This is an accessor using `$`.
-	ACCESSOR_POSITIONAL
+	AccessorPositional
 
 	// Commas are required to separate expressions.
-	COMMA
+	Comma
 
 	// This is the pipe that separates multiple expressions.
-	PIPE
+	Pipe
 
 	// Little token for separating input on output specifiers.
-	COLON
+	Colon
 
 	// Comparison Operators:
-	LESS_THAN
-	LESS_THAN_EQUAL
+	LessThan
+	LessThanEqual
 
-	EQUAL
-	NOT_EQUAL
+	Equal
+	NotEqual
 
-	GREATER_THAN
-	GREATER_THAN_EQUAL
+	GreaterThan
+	GreaterThanEqual
 
 	// Logical:
-	NOT
-	AND
-	OR
+	Not
+	And
+	Or
 
 	// Keywords:
 	// Denotes a conditional expression that will determine if a row should be filtered out.
 	// This is the default for every filter statement.
-	WHEN
+	When
 
 	// Denotes an operation which mutates something.
 	// These expression do not filter out any rows.
-	MUT
+	Mut
+
+	// Sort on a specific column.
+	Sort
+	NumericSort
 
 	// Keyword for how many results you want maximum.
-	HEAD
-	TAIL
+	Head
+	Tail
 
 	// Output specifiers:
 	// Selects which columns to output (optionally specify order)).
-	CSV
+	Csv
 
 	// This operation will export the surviving rows to a markdown table.
-	MD
+	Md
+
+	// This operation will export the surviving rows as a pretty table.
+	Pretty
 
 	// This operation will export the surviving rows to JSON.
-	JSON
+	Json
 
 	// This operation will export the surviving rows to HTML.
-	HTML
+	Html
 )
 
 func (t TokenType) String() string {
 	switch t {
-	case IDENTIFIER:
+	case Identifier:
 		return "Identifier"
-	case NUMBER:
+	case Number:
 		return "Number"
-	case STRING:
+	case String:
 		return "String"
-	case FUNCTION_CALL:
+	case FunctionCall:
 		return "FunctionCall"
-	case ACCESSOR_NAME:
+	case AccessorName:
 		return "."
-	case ACCESSOR_POSITIONAL:
+	case AccessorPositional:
 		return "$"
-	case COMMA:
+	case Comma:
 		return ","
-	case PIPE:
+	case Pipe:
 		return "|"
-	case COLON:
+	case Colon:
 		return ":"
-	case LESS_THAN:
+	case LessThan:
 		return "<"
-	case LESS_THAN_EQUAL:
+	case LessThanEqual:
 		return "<="
-	case EQUAL:
+	case Equal:
 		return "=="
-	case NOT_EQUAL:
+	case NotEqual:
 		return "!="
-	case GREATER_THAN:
+	case GreaterThan:
 		return ">"
-	case GREATER_THAN_EQUAL:
+	case GreaterThanEqual:
 		return ">="
-	case NOT:
+	case Not:
 		return "!"
-	case AND:
+	case And:
 		return "&&"
-	case OR:
+	case Or:
 		return "||"
-	case WHEN:
+	case When:
 		return "when"
-	case MUT:
+	case Mut:
 		return "mut"
-	case HEAD:
+
+	case Sort:
+		return "sort"
+	case NumericSort:
+		return "numeric_sort"
+
+	case Head:
 		return "head"
-	case TAIL:
+	case Tail:
 		return "tail"
-	case CSV:
+	case Csv:
 		return "csv"
-	case MD:
+	case Md:
 		return "md"
-	case JSON:
+	case Pretty:
+		return "pretty"
+	case Json:
 		return "json"
-	case HTML:
+	case Html:
 		return "html"
 	}
 
@@ -136,7 +151,6 @@ func (t TokenType) String() string {
 	return "<Unknown TokenType>"
 }
 
-// TODO: Document.
 type Token struct {
 	Type  TokenType
 	Value string

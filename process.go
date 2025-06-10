@@ -41,7 +41,10 @@ func Process(t_ctx ProcessContext) error {
 
 	// We can modify redundant instructions during execution.
 	instructions := filter.Instructions
-	vm.Exec(*instructions)
+	err = vm.Exec(*instructions)
+	if err != nil {
+		return err
+	}
 
 	return vm.Write()
 }

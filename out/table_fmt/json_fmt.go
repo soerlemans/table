@@ -47,6 +47,8 @@ func (this *JsonFmt) printTableRows() error {
 }
 
 func (this *JsonFmt) Write() error {
+	this.PerformSort()
+
 	err := this.printTableRows()
 	if err != nil {
 		return err
@@ -59,8 +61,10 @@ func InitJsonFmt(t_label string) (JsonFmt, error) {
 	fmt_ := JsonFmt{}
 
 	fmt_.Label = t_label
-	fmt_.Head = HEAD_UNSET
-	fmt_.Tail = TAIL_UNSET
+	fmt_.SortCol = SortUnset
+	fmt_.NumericSortCol = SortUnset
+	fmt_.Head = HeadUnset
+	fmt_.Tail = TailUnset
 
 	return fmt_, nil
 }

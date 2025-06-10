@@ -209,23 +209,40 @@ func (this *IrVm) execComparison(t_type InstructionType, t_list ValueList) (bool
 	return result, nil
 }
 
-func (this *IrVm) applyFmtColOrder(t_inst *Instruction) error {
+func (this *IrVm) ValueToColIndex(t_val Value) (int, error) {
+	var index int
+
 	// Get operands from the instruction.
-	colNames, err := this.resolveValues(t_inst.Operands)
+	colName, err := this.resolveValue(t_val)
 	if err != nil {
-		return err
+		return index, err
 	}
 
 	// Convert column names to indices.
-	order, err := this.Table.ColNamesToIndices(colNames)
+	index, err = this.Table.ColNameToIndex(colName)
 	if err != nil {
-		return err
+		return index, err
 	}
 
-	// Apply the order.
-	this.Fmt.SetOrder(order)
+	return index, nil
+}
 
-	return nil
+func (this *IrVm) ValueToColIndices(t_inst *Instruction) ([]int, error) {
+	var order []int
+
+	// Get operands from the instruction.
+	colNames, err := this.resolveValues(t_inst.Operands)
+	if err != nil {
+		return order, err
+	}
+
+	// Convert column names to indices.
+	order, err = this.Table.ColNamesToIndices(colNames)
+	if err != nil {
+		return order, err
+	}
+
+	return order, nil
 }
 
 // Change the output table format, and remove the instruction from the list.
@@ -240,7 +257,7 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 
 	switch instType {
 	case Csv:
-		u.Logln("ExecIr: Switching to csv fmt.")
+		u.Logln("ExecFmt: Switching to csv fmt.")
 		csv, err := tf.InitCsvFmt(label)
 		if err != nil {
 			return err
@@ -249,7 +266,7 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		break
 
 	case Md:
-		u.Logln("ExecIr: Switching to md fmt.")
+		u.Logln("ExecFmt: Switching to md fmt.")
 		md, err := tf.InitMdFmt(label)
 		if err != nil {
 			return err
@@ -258,8 +275,18 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		newFmt = &md
 		break
 
+	case Pretty:
+		u.Logln("ExecFmt: Switching to pretty fmt.")
+		md, err := tf.InitPrettyFmt(label)
+		if err != nil {
+			return err
+		}
+
+		newFmt = &md
+		break
+
 	case Json:
-		u.Logln("ExecIr: Switching to json fmt.")
+		u.Logln("ExecFmt: Switching to json fmt.")
 		json_, err := tf.InitJsonFmt(label)
 		if err != nil {
 			return err
@@ -269,7 +296,7 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		break
 
 	case Html:
-		u.Logln("ExecIr: Switching to html fmt.")
+		u.Logln("ExecFmt: Switching to html fmt.")
 		html_, err := tf.InitHtmlFmt(label)
 		if err != nil {
 			return err
@@ -291,10 +318,13 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 		this.Fmt = newFmt
 
 		// Apply format mask.
-		err := this.applyFmtColOrder(inst)
+		order, err := this.ValueToColIndices(inst)
 		if err != nil {
 			return err
 		}
+
+		// Apply the order of the columns.
+		this.Fmt.SetOrder(order)
 
 		// The formatter does not need to be set every iteration.
 		// To optimize we only set it once, as only one output format is allowed.
@@ -352,6 +382,29 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			break
 
 			// TODO: Move somewhere else.
+		case Sort:
+			u.Logln("ExecIr: Applying sort.")
+			val := inst.Operands[0]
+			index, err := this.ValueToColIndex(val)
+			if err != nil {
+				return err
+			}
+
+			this.Fmt.SetSort(index)
+			break
+
+		case NumericSort:
+			u.Logln("ExecIr: Applying numeric sort.")
+			val := inst.Operands[0]
+			index, err := this.ValueToColIndex(val)
+			if err != nil {
+				return err
+			}
+
+			this.Fmt.SetNumericSort(index)
+			break
+
+			// TODO: Move somewhere else.
 		case Head:
 			val := inst.Operands[0]
 			resolved, err := this.resolveValue(val)
@@ -386,6 +439,8 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 		case Csv:
 			fallthrough
 		case Md:
+			fallthrough
+		case Pretty:
 			fallthrough
 		case Json:
 			fallthrough

@@ -1,6 +1,7 @@
 package table_fmt
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -8,7 +9,12 @@ import (
 )
 
 const (
-	mdColSep = '|'
+	MdColSep = '|'
+	MdRowSep = '-'
+)
+
+var (
+	ErrColWidthIndex = errors.New("Column width index does not exist.")
 )
 
 type MdFmt struct {
@@ -16,6 +22,10 @@ type MdFmt struct {
 	BaseTableFmt
 
 	ColWidth map[int]int
+}
+
+func (this *MdFmt) errColWidthIndex(t_index int) error {
+	return fmt.Errorf("No %d index in ColWidth %+v (%w)", t_index, this.ColWidth, ErrColWidthIndex)
 }
 
 func (this *MdFmt) updateColWidth(t_row td.TableDataRow) {
@@ -58,7 +68,7 @@ func (this *MdFmt) printRow(t_row td.TableDataRow) error {
 
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
-			// TODO: Return err.
+			return this.errColWidthIndex(index)
 		}
 
 		// Check if the column is selected.
@@ -79,7 +89,7 @@ func (this *MdFmt) printTableHeaderSep() error {
 	for _, index := range order {
 		colWidth, ok := this.ColWidth[index]
 		if !ok {
-			// TODO: Return err.
+			return this.errColWidthIndex(index)
 		}
 
 		// Check if the column is selected.
@@ -111,6 +121,8 @@ func (this *MdFmt) printTableRows() error {
 }
 
 func (this *MdFmt) Write() error {
+	this.PerformSort()
+
 	err := this.printTableHeader()
 	if err != nil {
 		return err
@@ -144,11 +156,11 @@ func (this *MdFmt) Copy(t_fmt TableFmt) error {
 	order := t_fmt.GetOrder()
 	this.SetOrder(order)
 
-	sortCol := t_fmt.GetSort()
-	this.SetSort(sortCol)
+	sort_ := t_fmt.GetSort()
+	this.SetSort(sort_)
 
-	numSortCol := t_fmt.GetNumericSort()
-	this.SetNumericSort(numSortCol)
+	numSort := t_fmt.GetNumericSort()
+	this.SetNumericSort(numSort)
 
 	head := t_fmt.GetHead()
 	this.SetHead(head)
@@ -164,8 +176,10 @@ func InitMdFmt(t_label string) (MdFmt, error) {
 
 	fmt_.Label = t_label
 	fmt_.ColWidth = make(map[int]int)
-	fmt_.Head = HEAD_UNSET
-	fmt_.Tail = TAIL_UNSET
+	fmt_.SortCol = SortUnset
+	fmt_.NumericSortCol = SortUnset
+	fmt_.Head = HeadUnset
+	fmt_.Tail = TailUnset
 
 	return fmt_, nil
 }
