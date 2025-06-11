@@ -694,11 +694,13 @@ func item(t_stream *TokenStream) (InstPtr, error) {
 	} else if fmtPtr, err := formatOut(t_stream); validPtr(fmtPtr, err) {
 		inst = fmtPtr
 
+		// TODO: Simplify this bit here which is shared with the write directive check.
 		// We should end the filter list with a format_out statement.
 		if !t_stream.Eos() {
 			// Or if there is no write directive we should be at the end of the stream.
 			token := t_stream.Current()
 			if token.Type != GreaterThan {
+				fmt.Println(token)
 				return inst, errWriteDirective("item")
 			}
 		}
@@ -716,7 +718,8 @@ func itemList(t_stream *TokenStream) (InstListPtr, error) {
 	}
 
 	// Handle potential write directive.
-	if validPtr(list, err) {
+	// TODO: Simplify this bit here and the write directive selection.
+	if !t_stream.Eos() && validPtr(list, err) {
 		if writePtr, err := writeDirective(t_stream); validPtr(writePtr, err) {
 			addInstruction(&list, writePtr)
 		} else {

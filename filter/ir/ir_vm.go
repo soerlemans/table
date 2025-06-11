@@ -392,6 +392,9 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 
 			this.Fmt.SetSort(index)
 
+			// Remove instruction.
+			this.Instructions.Remove(elem)
+
 		case NumericSort:
 			u.Logln("ExecIr: Applying numeric sort.")
 			val := inst.Operands[0]
@@ -401,6 +404,9 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			}
 
 			this.Fmt.SetNumericSort(index)
+
+			// Remove instruction.
+			this.Instructions.Remove(elem)
 
 			// TODO: Move somewhere else.
 		case Head:
@@ -416,6 +422,9 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			}
 
 			this.Fmt.SetHead(num)
+
+			// Remove instruction.
+			this.Instructions.Remove(elem)
 			break
 
 		case Tail:
@@ -431,6 +440,9 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			}
 
 			this.Fmt.SetTail(num)
+
+			// Remove instruction.
+			this.Instructions.Remove(elem)
 
 			// Output specifiers:
 		case Csv:

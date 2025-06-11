@@ -4,11 +4,11 @@ This tool works similar to `jq`.
 Where you pass a set of filters or queries to mutate the csv data or extract lines that interest you.
 
 There are various output modifiers like:
- - csv
- - markdown table
- - JSON
- - JSON
- - HTML
+ - `csv`: Default csv output.
+ - `md`: Markdown table.
+ - `json`: Json output.
+ - `pretty`: Pretty ASCII table similar to markdown.
+ - `html`: HTML table.
 
 Here is a simple usage of `table`:
 ![Simple example usage](assets/table_usage_simple.png)
@@ -33,6 +33,22 @@ go install github.com/soerlemans/table@latest
 ```
 
 Diclaimer: This project is not feature complete or production ready, bugs will arise.
+
+## Example
+Here is an example usage of `table`:
+```shell
+table '.Department == "Engineering" | head 4 | sort "Username" | md "Username", "First name", "Last name", "Department" ' data/example.csv
+```
+
+Output:
+```
+| Username       | First name | Last name | Department  |
+| -------------- | ---------- | --------- | ----------- |
+| jenkins46      | Mary       | Jenkins   | Engineering |
+| jenkins9993424 | Bob        | Jenkins   | Engineering |
+| jenkins99999   | VanDame    | Jenkins   | Engineering |
+| jenkins9da33   | Herald     | Jenkins   | Engineering |
+```
 
 ## Help
 ```

@@ -163,8 +163,8 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 	// Default we are always inbounds.
 	var (
 		inBound     = false
-		headInBound = false
-		tailInBound = false
+		headIsUnset = false
+		tailIsUnset = false
 	)
 
 	head := this.GetHead()
@@ -185,10 +185,13 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 	// Any negative values are seen as being unset.
 	if head > HeadUnset {
 		// If the index is below the head count we are in bounds.
-		headInBound = (t_index < head)
-		u.Logf("InBounds: %v = %d < %d", headInBound, t_index, head)
+		inBound = (t_index < head)
+		u.Logf("InBounds: %v = %d < %d", inBound, t_index, head)
+		if inBound {
+			return inBound
+		}
 	} else {
-		headInBound = true
+		headIsUnset = true
 	}
 
 	if tail > TailUnset {
@@ -196,13 +199,16 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 		tailBound := (rowCount - 1) - tail
 
 		// If the index is above the tailBound we are in bounds.
-		tailInBound = (t_index > tailBound)
-		u.Logf("InBounds: %v = %d > %d", tailInBound, t_index, tailBound)
+		inBound = (t_index > tailBound)
+		u.Logf("InBounds: %v = %d > %d", inBound, t_index, tailBound)
+		if inBound {
+			return inBound
+		}
 	} else {
-		tailInBound = true
+		tailIsUnset = true
 	}
 
-	if headInBound || tailInBound {
+	if headIsUnset && tailIsUnset {
 		inBound = true
 	}
 
