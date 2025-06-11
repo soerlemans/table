@@ -1,8 +1,6 @@
 package table_fmt
 
 import (
-	"fmt"
-
 	td "github.com/soerlemans/table/table_data"
 )
 
@@ -15,15 +13,15 @@ func (this *JsonFmt) printRow(t_row td.TableDataRow) error {
 	var sep string
 	order := this.GetOrder()
 
-	fmt.Printf("{ ")
+	this.writef("{ ")
 	for _, index := range order {
 		colName := this.Headers[index]
 		value := t_row[index]
 
-		fmt.Printf("%s\"%s\": \"%s\"", sep, colName, value)
+		this.writef("%s\"%s\": \"%s\"", sep, colName, value)
 		sep = ", "
 	}
-	fmt.Println(" }")
+	this.writeln(" }")
 
 	return nil
 }
@@ -58,13 +56,11 @@ func (this *JsonFmt) Write() error {
 }
 
 func InitJsonFmt(t_label string) (JsonFmt, error) {
-	fmt_ := JsonFmt{}
+	base, err := InitBaseTableFmt(t_label)
+	format := JsonFmt{BaseTableFmt: base}
+	if err != nil {
+		return format, err
+	}
 
-	fmt_.Label = t_label
-	fmt_.SortCol = SortUnset
-	fmt_.NumericSortCol = SortUnset
-	fmt_.Head = HeadUnset
-	fmt_.Tail = TailUnset
-
-	return fmt_, nil
+	return format, nil
 }

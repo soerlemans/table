@@ -37,6 +37,8 @@ const (
 	Pretty
 	Json
 	Html
+
+	WriteDirective
 )
 
 func (t InstructionType) String() string {
@@ -79,6 +81,9 @@ func (t InstructionType) String() string {
 		return "Json"
 	case Html:
 		return "Html"
+
+	case WriteDirective:
+		return "WriteDirective"
 	}
 
 	// Return unhandled case.

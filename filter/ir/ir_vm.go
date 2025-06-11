@@ -4,6 +4,7 @@ import (
 	l "container/list"
 	"fmt"
 
+	s "github.com/soerlemans/table/out/sink"
 	tf "github.com/soerlemans/table/out/table_fmt"
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
@@ -22,7 +23,8 @@ type IrVm struct {
 	Table *td.TableData
 
 	// The formatter is in control of formatting the table in different formats.
-	Fmt tf.TableFmt
+	Fmt  tf.TableFmt
+	Sink s.Sink
 }
 
 // TODO: The index and tableData should be wrapped in a struct or something.
@@ -308,7 +310,6 @@ func (this *IrVm) execFmt(t_elem *l.Element) error {
 	default:
 		u.Logf("execFmt: Error unhandeld InstructionType: %v", instType)
 		// TODO: Error out.
-		break
 	}
 
 	if newFmt != nil {
@@ -379,7 +380,6 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			if !cmp {
 				skip = true
 			}
-			break
 
 			// TODO: Move somewhere else.
 		case Sort:
@@ -391,7 +391,9 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			}
 
 			this.Fmt.SetSort(index)
-			break
+
+			// Remove instruction.
+			this.Instructions.Remove(elem)
 
 		case NumericSort:
 			u.Logln("ExecIr: Applying numeric sort.")
@@ -402,7 +404,9 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			}
 
 			this.Fmt.SetNumericSort(index)
-			break
+
+			// Remove instruction.
+			this.Instructions.Remove(elem)
 
 			// TODO: Move somewhere else.
 		case Head:
@@ -418,6 +422,9 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			}
 
 			this.Fmt.SetHead(num)
+
+			// Remove instruction.
+			this.Instructions.Remove(elem)
 			break
 
 		case Tail:
@@ -433,7 +440,9 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			}
 
 			this.Fmt.SetTail(num)
-			break
+
+			// Remove instruction.
+			this.Instructions.Remove(elem)
 
 			// Output specifiers:
 		case Csv:
@@ -446,6 +455,26 @@ func (this *IrVm) ExecIr(t_insts *InstructionList) error {
 			fallthrough
 		case Html:
 			this.execFmt(elem)
+
+		case WriteDirective:
+			val := inst.Operands[0]
+			u.Logf("ExecIr: Setting file sink %v", val)
+
+			path, err := this.resolveValue(val)
+			if err != nil {
+				return err
+			}
+
+			sink, err := s.InitFileSink(path)
+			if err != nil {
+				return err
+			}
+
+			// Update sink.
+			this.Fmt.SetSink(&sink)
+
+			// Remove instruction.
+			this.Instructions.Remove(elem)
 
 		default:
 			u.Logf("ExecIr: Error unhandeld InstructionType: %v", inst.Type)

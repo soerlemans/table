@@ -1,7 +1,6 @@
 package table_fmt
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -29,9 +28,9 @@ func (this *PrettyFmt) printTableHeaderSep() error {
 
 		// Check if the column is selected.
 		colSep := strings.Repeat("-", colWidth)
-		fmt.Printf("+ %s ", colSep)
+		this.writef("+ %s ", colSep)
 	}
-	fmt.Println("+")
+	this.writeln("+")
 
 	return nil
 }
@@ -68,14 +67,11 @@ func (this *PrettyFmt) Write() error {
 }
 
 func InitPrettyFmt(t_label string) (PrettyFmt, error) {
-	fmt_ := PrettyFmt{}
+	base, err := InitMdFmt(t_label)
+	format := PrettyFmt{MdFmt: base}
+	if err != nil {
+		return format, err
+	}
 
-	fmt_.Label = t_label
-	fmt_.ColWidth = make(map[int]int)
-	fmt_.SortCol = SortUnset
-	fmt_.NumericSortCol = SortUnset
-	fmt_.Head = HeadUnset
-	fmt_.Tail = TailUnset
-
-	return fmt_, nil
+	return format, nil
 }

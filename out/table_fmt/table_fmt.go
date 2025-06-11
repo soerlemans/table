@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strconv"
 
+	s "github.com/soerlemans/table/out/sink"
 	td "github.com/soerlemans/table/table_data"
 	u "github.com/soerlemans/table/util"
 )
@@ -62,6 +63,10 @@ type TableFmt interface {
 	AddRow(t_row td.TableDataRow)
 	RowLen() int
 
+	// Set the sink.
+	SetSink(t_sink s.Sink)
+	GetSink() s.Sink
+
 	// Copying over:
 	Copy(t_fmt TableFmt) error
 
@@ -86,8 +91,20 @@ type BaseTableFmt struct {
 	// We need to calculate the max column width for every entry.
 	Headers td.TableDataRow
 	Rows    []td.TableDataRow
+
+	Sink s.Sink
 }
 
+// Private:
+func (this *BaseTableFmt) writef(t_fmt string, t_args ...interface{}) {
+	this.Sink.Writef(t_fmt, t_args...)
+}
+
+func (this *BaseTableFmt) writeln(t_args ...interface{}) {
+	this.Sink.Writeln(t_args...)
+}
+
+// Public:
 func (this *BaseTableFmt) GetLabel() string {
 	return this.Label
 }
@@ -146,8 +163,8 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 	// Default we are always inbounds.
 	var (
 		inBound     = false
-		headInBound = false
-		tailInBound = false
+		headIsUnset = false
+		tailIsUnset = false
 	)
 
 	head := this.GetHead()
@@ -168,10 +185,13 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 	// Any negative values are seen as being unset.
 	if head > HeadUnset {
 		// If the index is below the head count we are in bounds.
-		headInBound = (t_index < head)
-		u.Logf("InBounds: %v = %d < %d", headInBound, t_index, head)
+		inBound = (t_index < head)
+		u.Logf("InBounds: %v = %d < %d", inBound, t_index, head)
+		if inBound {
+			return inBound
+		}
 	} else {
-		headInBound = true
+		headIsUnset = true
 	}
 
 	if tail > TailUnset {
@@ -179,13 +199,16 @@ func (this *BaseTableFmt) InBounds(t_index int) bool {
 		tailBound := (rowCount - 1) - tail
 
 		// If the index is above the tailBound we are in bounds.
-		tailInBound = (t_index > tailBound)
-		u.Logf("InBounds: %v = %d > %d", tailInBound, t_index, tailBound)
+		inBound = (t_index > tailBound)
+		u.Logf("InBounds: %v = %d > %d", inBound, t_index, tailBound)
+		if inBound {
+			return inBound
+		}
 	} else {
-		tailInBound = true
+		tailIsUnset = true
 	}
 
-	if headInBound || tailInBound {
+	if headIsUnset && tailIsUnset {
 		inBound = true
 	}
 
@@ -287,6 +310,14 @@ func (this *BaseTableFmt) RowLen() int {
 	return len(this.Rows)
 }
 
+func (this *BaseTableFmt) SetSink(t_sink s.Sink) {
+	this.Sink = t_sink
+}
+
+func (this *BaseTableFmt) GetSink() s.Sink {
+	return this.Sink
+}
+
 // Generic copying functionality.
 func (this *BaseTableFmt) Copy(t_fmt TableFmt) error {
 	// This is a generic implementation for copying over all data.
@@ -313,5 +344,23 @@ func (this *BaseTableFmt) Copy(t_fmt TableFmt) error {
 	tail := t_fmt.GetTail()
 	this.SetTail(tail)
 
+	sink := t_fmt.GetSink()
+	this.SetSink(sink)
+
 	return nil
+}
+
+func InitBaseTableFmt(t_label string) (BaseTableFmt, error) {
+	format := BaseTableFmt{}
+
+	format.Label = t_label
+	format.SortCol = SortUnset
+	format.NumericSortCol = SortUnset
+	format.Head = HeadUnset
+	format.Tail = TailUnset
+
+	sink := s.InitStdoutSink()
+	format.Sink = &sink
+
+	return format, nil
 }

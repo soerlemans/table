@@ -1,8 +1,6 @@
 package table_fmt
 
 import (
-	"fmt"
-
 	td "github.com/soerlemans/table/table_data"
 )
 
@@ -17,11 +15,11 @@ func (this *CsvFmt) printRow(t_row td.TableDataRow) error {
 	var sep string
 	for _, index := range order {
 		cell := t_row[index]
-		fmt.Printf("%s%s", sep, cell)
+		this.writef("%s%s", sep, cell)
 
 		sep = ","
 	}
-	fmt.Println()
+	this.writeln()
 
 	return nil
 }
@@ -65,13 +63,11 @@ func (this *CsvFmt) Write() error {
 }
 
 func InitCsvFmt(t_label string) (CsvFmt, error) {
-	fmt_ := CsvFmt{}
+	base, err := InitBaseTableFmt(t_label)
+	format := CsvFmt{BaseTableFmt: base}
+	if err != nil {
+		return format, err
+	}
 
-	fmt_.Label = t_label
-	fmt_.SortCol = SortUnset
-	fmt_.NumericSortCol = SortUnset
-	fmt_.Head = HeadUnset
-	fmt_.Tail = TailUnset
-
-	return fmt_, nil
+	return format, nil
 }

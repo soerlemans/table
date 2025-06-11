@@ -550,14 +550,14 @@ func keyword(t_stream *TokenStream) (InstPtr, error) {
 	return inst, nil
 }
 
-func write(t_stream *TokenStream) (InstPtr, error) {
+func formatOut(t_stream *TokenStream) (InstPtr, error) {
 	var (
 		inst InstPtr
 		list ValueListPtr = new(ir.ValueList)
 		err  error
 	)
 
-	defer func() { logUnlessNil("write", inst) }()
+	defer func() { logUnlessNil("formatOut", inst) }()
 
 	// Guard clause.
 	if t_stream.Eos() {
@@ -644,6 +644,36 @@ func write(t_stream *TokenStream) (InstPtr, error) {
 	return inst, nil
 }
 
+func writeDirective(t_stream *TokenStream) (InstPtr, error) {
+	var inst InstPtr
+	defer func() { logUnlessNil("writeDirective", inst) }()
+
+	// Guard clause.
+	if t_stream.Eos() {
+		return inst, nil
+	}
+
+	token := t_stream.Current()
+	if token.Type == GreaterThan {
+		t_stream.Next()
+		if t_stream.Eos() {
+			return inst, errUnexpectedEos("writeDirective")
+		}
+
+		if argPtr, err := rvalue(t_stream); validPtr(argPtr, err) {
+			write := ir.InitInstruction(ir.WriteDirective, *argPtr)
+
+			inst = &write
+		} else {
+			// We must receive an argument for head.
+			return inst, errExpectedString("writeDirective", "rvalue")
+		}
+	}
+
+	return inst, nil
+}
+
+// Also contains the handling of the formatOut directive.
 func item(t_stream *TokenStream) (InstPtr, error) {
 	var inst InstPtr
 	defer func() { logUnlessNil("item", inst) }()
@@ -660,13 +690,19 @@ func item(t_stream *TokenStream) (InstPtr, error) {
 	} else if err != nil {
 		return inst, err
 
-		// Check for a writer specification.
-	} else if writePtr, err := write(t_stream); validPtr(writePtr, err) {
-		inst = writePtr
+		// Check for writer specification.
+	} else if fmtPtr, err := formatOut(t_stream); validPtr(fmtPtr, err) {
+		inst = fmtPtr
 
-		// If a writer is successfully parsed we should be at the end of stream.
+		// TODO: Simplify this bit here which is shared with the write directive check.
+		// We should end the filter list with a format_out statement.
 		if !t_stream.Eos() {
-			return inst, errWriteDirective("item")
+			// Or if there is no write directive we should be at the end of the stream.
+			token := t_stream.Current()
+			if token.Type != GreaterThan {
+				fmt.Println(token)
+				return inst, errWriteDirective("item")
+			}
 		}
 	} else if err != nil {
 		return inst, err
@@ -676,7 +712,22 @@ func item(t_stream *TokenStream) (InstPtr, error) {
 }
 
 func itemList(t_stream *TokenStream) (InstListPtr, error) {
-	return parseList(t_stream, item, Pipe)
+	list, err := parseList(t_stream, item, Pipe)
+	if err != nil {
+		return list, err
+	}
+
+	// Handle potential write directive.
+	// TODO: Simplify this bit here and the write directive selection.
+	if !t_stream.Eos() && validPtr(list, err) {
+		if writePtr, err := writeDirective(t_stream); validPtr(writePtr, err) {
+			addInstruction(&list, writePtr)
+		} else {
+			return list, errWriteDirective("itemList")
+		}
+	}
+
+	return list, nil
 }
 
 // This function is here purely just to match the grammary.yy.

@@ -67,30 +67,34 @@ keyword          : WHEN expr
 								 | TAIL rvalue
                  ;
 
-write_csv        : CSV
-                 | CSV STRING
-                 | CSV STRING COMMA parameter_list
+format_csv        : CSV
+                 | CSV parameter_list
                  ;
 
-write_md         : MD
-                 | MD STRING
-                 | MD STRING COMMA parameter_list
+format_md         : MD
+                 | MD parameter_list
                  ;
 
-write_json       : JSON
-                 | JSON STRING
-                 | JSON STRING COMMA parameter_list
+format_pretty     : PRETTY
+                 | PRETTY parameter_list
                  ;
 
-write_html       : HTML
-                 | HTML STRING
-                 | HTML STRING COMMA parameter_list
+format_json       : JSON
+                 | JSON parameter_list
                  ;
 
-write            : write_csv
-                 | write_md
-                 | write_json
-                 | write_html
+format_html       : HTML
+                 | HTML parameter_list
+                 ;
+
+format_out       : format_csv
+                 | format_md
+                 | format_pretty
+                 | format_json
+                 | format_html
+                 ;
+
+write_directive  : GT rvalue
                  ;
 
 
@@ -102,11 +106,11 @@ item             : keyword
 item_list        : // empty
                  | item_list PIPE item
                  | item
+                 | item_list PIPE format_out // A format_out should always be at the end (if it is there).
                  ;
 
 program          : item_list
-                 | item_list PIPE write // A write should always be at the end (if it is there).
-								 | write
+								 | format_out
                  ;
 
 %%
